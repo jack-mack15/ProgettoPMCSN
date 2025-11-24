@@ -1,0 +1,6 @@
+
+S	java:S106"9Replace this use of System.out or System.err by a logger.(“×·ôþÿÿÿÿ
+<
+java:S1170"!Make this final field static too.(„˜ê ùÿÿÿÿ
+t
+java:S1210"YOverride "equals(Object obj)" to comply with the contract of the "compareTo(T o)" method.(µÈ¦¼üÿÿÿÿ
