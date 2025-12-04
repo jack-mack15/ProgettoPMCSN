@@ -74,29 +74,29 @@ public class Population {
     }
 
     //media temporale della popolazione (sistema o per nodo a seconda di come si usa)
-    public double getPopulationMean() {
-        double observationTime = lastUpdate - startTime;
+    public double getPopulationMean(double finish) {
+        double observationTime = finish - startTime;
         return area / observationTime;
     }
 
     //per la varianza sfrutto la formula E[X^2] - E[X]^2
-    public double getPopulationVariance() {
-        double mean = getPopulationMean();
-        double secondMoment = areaSquared / (lastUpdate - startTime);
+    public double getPopulationVariance(double finish) {
+        double mean = getPopulationMean(finish);
+        double secondMoment = areaSquared / (finish - startTime);
         double variance = secondMoment - mean * mean;
         return variance;
     }
 
     //per la deviazione standard si usa il metodo della varianza con radice quadrata
-    public double getPopulationStandardDeviation() {
-        return Math.sqrt(getPopulationVariance());
+    public double getPopulationStandardDeviation(double finish) {
+        return Math.sqrt(getPopulationVariance(finish));
     }
 
     public double getBusyTime() {
         return busyTime;
     }
-    public double getUtilization() {
-        double elapsed = lastUpdate - startTime;
+    public double getUtilization(double finish) {
+        double elapsed = finish - startTime;
         //checkBusyTimeCorrect(lastUpdate);
         return getBusyTime() / elapsed;
     }
@@ -105,8 +105,8 @@ public class Population {
         return nodeDeparture;
     }
 
-    public double getThroughput() {
-        double elaps = lastUpdate - startTime;
-        return (double) getNodeDeparture() / elaps;
+    public double getThroughput(double finish) {
+        double elaps = finish - startTime;
+        return getNodeDeparture() / elaps;
     }
 }

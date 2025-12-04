@@ -18,14 +18,12 @@ public abstract class AbstractNode {
     protected NextEventScheduler scheduler;
 
     //identificatore dell'ultimo job del nodo
-    protected long lastJobId;
 
     public AbstractNode(String name, int serverNumber, NextEventScheduler scheduler) {
         this.name = name;
         this.maxServers = serverNumber;
         this.occupiedServesNum = 0;
         this.scheduler  = scheduler;
-        this.lastJobId = -1;
     }
 
     //metodo astratto che si occupa di gestire un evento del nodo

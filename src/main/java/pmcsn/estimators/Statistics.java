@@ -13,13 +13,13 @@ public class Statistics {
     }
 
     //lista di copie di Estimator per ogni tipo di metrica
-    private final Estimator responseTimeEstimator = new Estimator();
-    private final Estimator throughputEstimator = new Estimator();
-    private final Estimator waitTimeEstimator = new Estimator();
-    private final PopulationEstimator populationEstimator = PopulationEstimator.getInstance();
+    private Estimator responseTimeEstimator = new Estimator();
+    private Estimator waitTimeEstimator = new Estimator();
+    private PopulationEstimator populationEstimator = PopulationEstimator.getInstance();
+    private  GlobalEstimator globalEstimator = new GlobalEstimator();
 
 
-    //metodo che aggiorna i vari estimator con l'arrivo di un job completato
+    //metodo che aggiorna i vari estimator con la departure di un job
     public void updateEstimators(Job j) {
 
         //tempi significativi del job
@@ -29,18 +29,23 @@ public class Statistics {
         double responseTime = completeTime-arrivalTime;
         double waitTime = responseTime-serviceTime;
 
-        out.println("JOB di "+j.getNode()+" con a: "+arrivalTime+ " c: "+completeTime+ " s: "+serviceTime);
+        //out.println("JOB di "+j.getNode()+" con a: "+arrivalTime+ " c: "+completeTime+ " s: "+serviceTime);
 
         //aggiornamento metriche per nodo
         responseTimeEstimator.update(j.getNode(),responseTime);
         waitTimeEstimator.update(j.getNode(),waitTime);
 
         //aggiornamento metriche globali
-        responseTimeEstimator.update("G",responseTime);
-        waitTimeEstimator.update("G",waitTime);
+        globalEstimator.update(j);
 
     }
 
+    public void resetStatistics() {
+        responseTimeEstimator = new Estimator();
+        waitTimeEstimator = new Estimator();
+        PopulationEstimator.getInstance().resetPopulation();
+        globalEstimator = new GlobalEstimator();
+    }
     public void printStatistics() {
         out.println("NODO A: STATISTICHE--------------------");
         out.println("mean response time: "+responseTimeEstimator.getMean("A"));
@@ -67,10 +72,40 @@ public class Statistics {
         out.println("\n\n");
 
         out.println("SISTEMA: STATISTICHE--------------------");
-        out.println("mean response time: "+responseTimeEstimator.getMean("G"));
-        out.println("mean wait time: "+waitTimeEstimator.getMean("G"));
+        out.println("mean response time: "+globalEstimator.getResponseTimeMean());
         out.println("mean population: "+populationEstimator.getPopulationMean("SYSTEM"));
         out.println("utilizzazione: "+populationEstimator.getUtilization("SYSTEM"));
         out.println("throughput: "+populationEstimator.getThroughput("SYSTEM"));
+
+        out.println("\n\nSTAMPA VERIFICA-------------------------------------------");
+        double temp = responseTimeEstimator.getMean("A")*3+responseTimeEstimator.getMean("B")+responseTimeEstimator.getMean("P");
+        out.println("media response time ricalcolata: "+temp);
+        temp = populationEstimator.getPopulationMean("A")+populationEstimator.getPopulationMean("B")+populationEstimator.getPopulationMean("P");
+        out.println("media popolazione ricalcolata: "+temp);
+
+    }
+
+    public double getPopMean(String node) {
+        return populationEstimator.getPopulationMean(node);
+    }
+
+    public double getUtilizationMean(String node) {
+        return populationEstimator.getUtilization(node);
+    }
+
+    public double getResponseTimeMean(String node) {
+        if (node == "SYSTEM") {
+            return globalEstimator.getResponseTimeMean();
+        } else {
+            return responseTimeEstimator.getMean(node);
+        }
+    }
+
+    public double getResponseTimeStandDev(String node) {
+        if (node == "SYSTEM") {
+            return globalEstimator.getResponseTimeStandardDeviation();
+        } else {
+            return responseTimeEstimator.getStandardDeviation(node);
+        }
     }
 }

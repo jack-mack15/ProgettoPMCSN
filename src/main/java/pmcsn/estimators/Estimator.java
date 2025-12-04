@@ -7,7 +7,6 @@ public class Estimator {
     private Welford nodeAEstimator = new Welford();
     private Welford nodeBEstimator = new Welford();
     private Welford nodePEstimator = new Welford();
-    private Welford globalEstimator = new Welford();
 
     public void update(String node, double x) {
         if(Objects.equals(node, "A")) {
@@ -18,7 +17,6 @@ public class Estimator {
             //node == P
             nodePEstimator.addData(x);
         }
-        globalEstimator.addData(x);
     }
 
     public double getMean(String node) {
@@ -30,7 +28,7 @@ public class Estimator {
             case "P":
                 return nodePEstimator.getMean();
             default:
-                return globalEstimator.getMean();
+                return -1.0;
         }
     }
 
@@ -43,7 +41,7 @@ public class Estimator {
             case "P":
                 return nodePEstimator.getStandardDeviation();
             default:
-                return globalEstimator.getStandardDeviation();
+                return -1.0;
         }
     }
 
@@ -56,7 +54,7 @@ public class Estimator {
             case "P":
                 return nodePEstimator.getVariance();
             default:
-                return globalEstimator.getVariance();
+                return -1.0;
         }
     }
 

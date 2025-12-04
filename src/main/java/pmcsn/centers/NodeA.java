@@ -21,7 +21,8 @@ public class NodeA extends AbstractNode{
 
     public NodeA(int serverNumber, NextEventScheduler scheduler) {
         super("A", serverNumber, scheduler);
-        serviceRate = new double[] {0.2,0.4,0.1};
+        //serviceRate = new double[] {0.2,0.4,0.1};
+        serviceRate = new double[] {0.2,0.4,0.15};
         jobsInService = new ArrayList<>();
         lastUpdate = 0.0;
     }
@@ -30,7 +31,7 @@ public class NodeA extends AbstractNode{
     public void handleArrival(Event e) {
         int newClassId = e.getClassId();
 
-        out.println("NODO A: handling arrival");
+        //out.println("NODO A: handling arrival");
         //lista di variabili che dipendono dalla classe dell'evento
         int streamSelection = 0;
         int selectedServiceRate = 0;
@@ -57,12 +58,12 @@ public class NodeA extends AbstractNode{
         //ottenere il tempo di esecuzione del job appena arrivato
         scheduler.getRng().selectStream(streamSelection);
         double serviceTime = Exponential.exponential(serviceRate[selectedServiceRate],scheduler.getRng());
+
         //creazione job e inserimento nella giusta lista
-        lastJobId++;
-        Job newJob = new Job("A",lastJobId, scheduler.getClock(),e.getClassId(), serviceTime);
+        Job newJob = new Job("A",e.getIdRequest(), scheduler.getClock(),e.getClassId(), serviceTime);
         PopulationEstimator.getInstance().updatePopulationOnArrival(newJob);
 
-        out.println("NODO A: job creato ad istante: "+scheduler.getClock()+", con service time: "+serviceTime+ " e rst: "+newJob.getRemainingServiceTime());
+        //out.println("NODO A: job creato ad istante: "+scheduler.getClock()+", con service time: "+serviceTime+ " e rst: "+newJob.getRemainingServiceTime());
 
         //prima di aggiungere il job ai job in esecuzione, eseguo l'update del remaining service time di tutti i job in servizio
         updateRemainingServiceTime(scheduler.getClock());
@@ -74,12 +75,12 @@ public class NodeA extends AbstractNode{
 
         //TODO rimuovere questa stampa di debug
         //debugPrint();
-        out.println("\n\n");
+        //out.println("\n\n");
     }
 
     @Override
     public void handleDeparture(Event e) {
-        out.println("NODO A: handling departure ad istante: "+e.getTime());
+        //out.println("NODO A: handling departure ad istante: "+e.getTime());
 
         //aggiorno i tempi di servizio rimanenti, in base al clock attuale
         updateRemainingServiceTime(scheduler.getClock());
@@ -92,7 +93,7 @@ public class NodeA extends AbstractNode{
 
         //TODO rimuovere questa stampa di debug
         //debugPrint();
-        out.println("\n\n");
+        //out.println("\n\n");
 
     }
 
@@ -116,11 +117,11 @@ public class NodeA extends AbstractNode{
         firstDeparture += scheduler.getClock();
 
         //generare evento departure per il job
-        Event departureForThis = new Event(firstDeparture, EventType.DEPARTURE,"A",firstJob.getJobClass());
+        Event departureForThis = new Event(firstDeparture, EventType.DEPARTURE,"A",firstJob.getJobClass(),firstJob.getId());
         //aggiunta evento departure alla coda dello scheduler
         scheduler.addEvent(departureForThis);
 
-        out.println("NODO A: creato evento departure ad istante:"+departureForThis.getTime());
+        //out.println("NODO A: creato evento departure ad istante:"+departureForThis.getTime());
     }
 
 
@@ -180,8 +181,8 @@ public class NodeA extends AbstractNode{
             nextNode = "EXIT";
             return;
         }
-        Event e = new Event(scheduler.getClock(), EventType.ARRIVAL,nextNode,currentClass);
-        out.println("NODO A: sending job to "+e.getNode());
+        Event e = new Event(scheduler.getClock(), EventType.ARRIVAL,nextNode,currentClass,j.getId());
+        //out.println("NODO A: sending job to "+e.getNode());
         scheduler.addEvent(e);
     }
 

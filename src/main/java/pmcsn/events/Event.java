@@ -7,11 +7,14 @@ public class Event implements Comparable<Event> {
     private String node;
     private int classId;
 
-    public Event(double time, EventType type, String nodeName, int classId){
+    private long idRequest;
+
+    public Event(double time, EventType type, String nodeName, int classId, long idRequest){
         this.time = time;
         this.type = type;
         this.classId = classId;
         this.node = nodeName;
+        this.idRequest = idRequest;
     }
 
     @Override
@@ -51,5 +54,8 @@ public class Event implements Comparable<Event> {
     }
     public void setTime(double time) {
         this.time = time;
+    }
+    public long getIdRequest() {
+        return idRequest;
     }
 }

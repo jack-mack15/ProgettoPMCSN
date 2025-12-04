@@ -10,11 +10,11 @@ public class System {
 
     private NextEventScheduler scheduler;
 
-    public System(NextEventScheduler scheduler) {
+    public System(NextEventScheduler scheduler, boolean scaling) {
         this.scheduler = scheduler;
         this.serverA = new NodeA(4,scheduler);
         this.serverP = new NodeP(4,scheduler);
-        this.bLoadBalancer = new BLoadBalancer(scheduler,"B");
+        this.bLoadBalancer = new BLoadBalancer(scheduler,"B",scaling);
     }
 
     public void handleCopyCreation(Event e) {

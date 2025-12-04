@@ -52,7 +52,7 @@ public class Job implements Comparable<Job>{
         if ((remainServiceTime - temp) < epsilon && share > 0.0) {
             //questo caso si dovrebbe verificare solo quando due eventi (uno departure e uno arrival)
             //hanno lo stesso tempo di arrivo o in caso di problemi di rappresentazione double
-            out.println("JOB: service remain time: "+(remainServiceTime-share));
+            //out.println("JOB: service remain time: "+(remainServiceTime-share));
             this.remainServiceTime = 0.0;
             return 0.0;
         }

@@ -25,13 +25,14 @@ public class NodeB extends AbstractNode{
     public NodeB(int serverNumber, NextEventScheduler scheduler, String newName) {
         super(newName, serverNumber, scheduler);
         serviceRate = 0.8;
+        //serviceRate = 1.2;
         jobsInService = new ArrayList<>();
         lastUpdate = 0.0;
     }
 
     @Override
     public void handleArrival(Event e) {
-        out.println("NODO "+name+": arrival ad istante: "+e.getTime());
+        //out.println("NODO "+name+": arrival ad istante: "+e.getTime());
 
         //stream del generatore
         int streamSelection = 3;
@@ -41,12 +42,12 @@ public class NodeB extends AbstractNode{
         //ottenere il tempo di esecuzione del job appena arrivato
         scheduler.getRng().selectStream(streamSelection);
         double serviceTime = Exponential.exponential(serviceRate,scheduler.getRng());
+
         //creazione job e inserimento nella giusta lista
-        lastJobId++;
-        Job newJob = new Job("B",lastJobId, scheduler.getClock(),nextJobClass, serviceTime);
+        Job newJob = new Job("B",e.getIdRequest(), scheduler.getClock(),nextJobClass, serviceTime);
         PopulationEstimator.getInstance().updatePopulationOnArrival(newJob);
 
-        out.println("NODO "+name+": job creato ad istante: "+scheduler.getClock()+", con service time: "+serviceTime+ " e rst: "+newJob.getRemainingServiceTime());
+        //out.println("NODO "+name+": job creato ad istante: "+scheduler.getClock()+", con service time: "+serviceTime+ " e rst: "+newJob.getRemainingServiceTime());
 
         updateRemainingServiceTime(scheduler.getClock());
 
@@ -60,13 +61,13 @@ public class NodeB extends AbstractNode{
 
         //TODO rimuovere questa stampa di debug
         //debugPrint();
-        out.println("\n\n");
+        //out.println("\n\n");
 
     }
 
     @Override
     public void handleDeparture(Event e) {
-        out.println("NODO "+name+": departure ad istante: "+e.getTime());
+        //out.println("NODO "+name+": departure ad istante: "+e.getTime());
 
         //aggiorno i tempi di servizio rimanenti, in base al clock attuale
         updateRemainingServiceTime(scheduler.getClock());
@@ -81,8 +82,8 @@ public class NodeB extends AbstractNode{
         }
 
         //TODO rimuovere questa stampa di debug
-        debugPrint();
-        out.println("\n\n");
+        //debugPrint();
+        //out.println("\n\n");
     }
 
     //il valore di ritorno indica se è stato schedulato la prossima departure
@@ -97,7 +98,7 @@ public class NodeB extends AbstractNode{
                 j.setCompleteTime(scheduler.getClock());
                 Statistics.getInstance().updateEstimators(j);
                 PopulationEstimator.getInstance().updatePopulationOnDeparture(j);
-                sendJobToServer();
+                sendJobToServer(j);
             }
         }
         if (!toRemove.isEmpty()) {
@@ -112,8 +113,8 @@ public class NodeB extends AbstractNode{
     }
 
     private void scheduleDestroy() {
-        out.println("NODO "+name+" SCHEDULING DESTROY*************************************************************************************");
-        Event destroy = new Event(scheduler.getClock()+10.0,EventType.DESTROY,name,-1);
+        //out.println("NODO "+name+" SCHEDULING DESTROY*************************************************************************************");
+        Event destroy = new Event(scheduler.getClock()+15.0,EventType.DESTROY,name,-1,-1);
         scheduler.addEvent(destroy);
     }
 
@@ -131,21 +132,24 @@ public class NodeB extends AbstractNode{
         }
 
         //prendo il tempo di primo completamento tra i job in servizio
-        double firstToComplete = getFirstToComplete();
+        Job firstToComplete = getFirstToComplete();
+        if (firstToComplete == null) {
+            return;
+        }
 
-        double firstDeparture = firstToComplete * jobsInService.size();
+        double firstDeparture = firstToComplete.getRemainingServiceTime() * jobsInService.size();
         firstDeparture += scheduler.getClock();
 
         //generare evento departure per il job
-        Event departureForThis = new Event(firstDeparture, EventType.DEPARTURE,name,1);
+        Event departureForThis = new Event(firstDeparture, EventType.DEPARTURE,name,1, firstToComplete.getId());
         //aggiunta evento departure alla coda dello scheduler
         scheduler.addEvent(departureForThis);
 
-        out.println("NODO "+name+": creato evento departure ad istante:"+departureForThis.getTime());
+        //out.println("NODO "+name+": creato evento departure ad istante:"+departureForThis.getTime());
     }
 
-    private void sendJobToServer() {
-        Event e = new Event(scheduler.getClock(), EventType.ARRIVAL,"A",1);
+    private void sendJobToServer(Job j) {
+        Event e = new Event(scheduler.getClock(), EventType.ARRIVAL,"A",1,j.getId());
         scheduler.addEvent(e);
     }
 
@@ -163,8 +167,11 @@ public class NodeB extends AbstractNode{
         jobsInService.sort(Comparator.comparingDouble(Job::getRemainServiceTime));
     }
 
-    private double getFirstToComplete() {
-        return jobsInService.get(0).getRemainServiceTime();
+    private Job getFirstToComplete() {
+        if (jobsInService.isEmpty()) {
+            return null;
+        }
+        return jobsInService.get(0);
     }
 
     //METODO PER DEBUG
