@@ -37,7 +37,7 @@ public class ArrivalController {
             idArrival++;
             numArrivals++;
         } else {
-            scheduler.getRng().selectStream(0);
+            scheduler.getRng().selectStream("EXT");
             arrivalTime += Exponential.exponential(arrivalRate, scheduler.getRng());
 
             Event e = new Event(arrivalTime, EventType.ARRIVAL, "A", -1,idArrival);

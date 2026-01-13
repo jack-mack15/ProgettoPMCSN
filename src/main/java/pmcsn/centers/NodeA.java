@@ -31,22 +31,21 @@ public class NodeA extends AbstractNode{
     public void handleArrival(Event e) {
         int newClassId = e.getClassId();
 
-        //out.println("NODO A: handling arrival");
         //lista di variabili che dipendono dalla classe dell'evento
-        int streamSelection = 0;
+        String streamSelection = "";
         int selectedServiceRate = 0;
         switch (newClassId) {
             case -1:
-                streamSelection = 1;
+                streamSelection = "A_1";
                 break;
 
             case 1:
-                streamSelection = 2;
+                streamSelection = "A_2";
                 selectedServiceRate = 1;
                 break;
 
             case 2:
-                streamSelection = 3;
+                streamSelection = "A_3";
                 selectedServiceRate = 2;
                 break;
 
@@ -61,9 +60,9 @@ public class NodeA extends AbstractNode{
 
         //creazione job e inserimento nella giusta lista
         Job newJob = new Job("A",e.getIdRequest(), scheduler.getClock(),e.getClassId(), serviceTime);
-        PopulationEstimator.getInstance().updatePopulationOnArrival(newJob);
 
-        //out.println("NODO A: job creato ad istante: "+scheduler.getClock()+", con service time: "+serviceTime+ " e rst: "+newJob.getRemainingServiceTime());
+        //aggiornamento popolatione
+        PopulationEstimator.getInstance().updatePopulationOnArrival(newJob);
 
         //prima di aggiungere il job ai job in esecuzione, eseguo l'update del remaining service time di tutti i job in servizio
         updateRemainingServiceTime(scheduler.getClock());
@@ -97,7 +96,7 @@ public class NodeA extends AbstractNode{
 
     }
 
-    //metodo che si occupa di creare e aggiungere il prossimo evento di departure per questo nodo
+    //metodo che si occupa di creare e aggiungere il prossimo evento di departure per questo nodo.
     //effettivamente la departure non richiede una classe, perchè poi è la classe del job che completa a influenzare
     //il path del job
     private void scheduleNextDeparture() {
@@ -147,8 +146,16 @@ public class NodeA extends AbstractNode{
             if (temp <= j.getEpsilon()) {
                 toRemove.add(j);
                 j.setCompleteTime(scheduler.getClock());
-                Statistics.getInstance().updateEstimators(j);
+
+                //aggiornamento per le statistiche
+                Statistics.getInstance().updateEstimators("A",j);
                 PopulationEstimator.getInstance().updatePopulationOnDeparture(j);
+
+                //aumento il numro di job passati per il sistema
+                if (j.getJobClass() == 2) {
+                    scheduler.incrementCurNumOfJobs();
+                }
+
                 sendJobToServer(j);
             }
         }

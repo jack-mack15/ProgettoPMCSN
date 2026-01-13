@@ -10,7 +10,7 @@ public class Population {
     //mi serve per calcolare l'integrale di N(t) e poi per ottenere la media
     private double area;
 
-    //mi serve per calcolare l'integrale di N(t)^2, poi insieme alla media ci ottengo la varianza
+    //mi serve per calcolare l'integrale di N(t)^2, poi insieme alla media ci ottengo la varianza, se servisse
     private double areaSquared;
     private double busyTime;
     private double idleTime;
@@ -74,15 +74,15 @@ public class Population {
     }
 
     //media temporale della popolazione (sistema o per nodo a seconda di come si usa)
-    public double getPopulationMean(double finish) {
-        double observationTime = finish - startTime;
+    public double getPopulationMean(double currTime) {
+        double observationTime = currTime - startTime;
         return area / observationTime;
     }
 
     //per la varianza sfrutto la formula E[X^2] - E[X]^2
-    public double getPopulationVariance(double finish) {
-        double mean = getPopulationMean(finish);
-        double secondMoment = areaSquared / (finish - startTime);
+    public double getPopulationVariance(double currTime) {
+        double mean = getPopulationMean(currTime);
+        double secondMoment = areaSquared / (currTime - startTime);
         double variance = secondMoment - mean * mean;
         return variance;
     }
@@ -97,7 +97,6 @@ public class Population {
     }
     public double getUtilization(double finish) {
         double elapsed = finish - startTime;
-        //checkBusyTimeCorrect(lastUpdate);
         return getBusyTime() / elapsed;
     }
 
@@ -108,5 +107,26 @@ public class Population {
     public double getThroughput(double finish) {
         double elaps = finish - startTime;
         return getNodeDeparture() / elaps;
+    }
+
+    public void resetPopulation(double newStart) {
+        busyTime = 0.0;
+        idleTime = 0.0;
+        area = 0.0;
+        areaSquared = 0.0;
+        startTime = newStart;
+        nodeDeparture = 0;
+        lastUpdate = newStart;
+    }
+
+    public void hardReset() {
+        busyTime = 0.0;
+        idleTime = 0.0;
+        area = 0.0;
+        areaSquared = 0.0;
+        startTime = 0.0;
+        nodeDeparture = 0;
+        lastUpdate = 0.0;
+        numJobs = 0;
     }
 }

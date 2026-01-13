@@ -22,20 +22,28 @@ public class NodeB extends AbstractNode{
     private ArrayList<Job> jobsInService;
     private double lastUpdate;
 
+    //indica se c'è un evento destroy in arrivo
+    private boolean uponDestroy;
+
     public NodeB(int serverNumber, NextEventScheduler scheduler, String newName) {
         super(newName, serverNumber, scheduler);
         serviceRate = 0.8;
-        //serviceRate = 1.2;
+        uponDestroy = false;
         jobsInService = new ArrayList<>();
         lastUpdate = 0.0;
     }
 
     @Override
     public void handleArrival(Event e) {
-        //out.println("NODO "+name+": arrival ad istante: "+e.getTime());
+
+        //vedo se ho un evento destroy pending e in caso lo elimino
+        if (uponDestroy) {
+            scheduler.removeDestroyEvent(name);
+            uponDestroy = false;
+        }
 
         //stream del generatore
-        int streamSelection = 3;
+        String streamSelection = "B";
         //la classe uscente sarà sempre 1
         int nextJobClass = 1;
 
@@ -46,8 +54,6 @@ public class NodeB extends AbstractNode{
         //creazione job e inserimento nella giusta lista
         Job newJob = new Job("B",e.getIdRequest(), scheduler.getClock(),nextJobClass, serviceTime);
         PopulationEstimator.getInstance().updatePopulationOnArrival(newJob);
-
-        //out.println("NODO "+name+": job creato ad istante: "+scheduler.getClock()+", con service time: "+serviceTime+ " e rst: "+newJob.getRemainingServiceTime());
 
         updateRemainingServiceTime(scheduler.getClock());
 
@@ -60,15 +66,13 @@ public class NodeB extends AbstractNode{
         }
 
         //TODO rimuovere questa stampa di debug
-        //debugPrint();
+        //debugPrint(e.getTime());
         //out.println("\n\n");
 
     }
 
     @Override
     public void handleDeparture(Event e) {
-        //out.println("NODO "+name+": departure ad istante: "+e.getTime());
-
         //aggiorno i tempi di servizio rimanenti, in base al clock attuale
         updateRemainingServiceTime(scheduler.getClock());
 
@@ -82,7 +86,7 @@ public class NodeB extends AbstractNode{
         }
 
         //TODO rimuovere questa stampa di debug
-        //debugPrint();
+        //debugPrint(e.getTime());
         //out.println("\n\n");
     }
 
@@ -96,7 +100,7 @@ public class NodeB extends AbstractNode{
             if (temp <= j.getEpsilon()) {
                 toRemove.add(j);
                 j.setCompleteTime(scheduler.getClock());
-                Statistics.getInstance().updateEstimators(j);
+                Statistics.getInstance().updateEstimators("B",j);
                 PopulationEstimator.getInstance().updatePopulationOnDeparture(j);
                 sendJobToServer(j);
             }
@@ -113,9 +117,9 @@ public class NodeB extends AbstractNode{
     }
 
     private void scheduleDestroy() {
-        //out.println("NODO "+name+" SCHEDULING DESTROY*************************************************************************************");
         Event destroy = new Event(scheduler.getClock()+15.0,EventType.DESTROY,name,-1,-1);
         scheduler.addEvent(destroy);
+        uponDestroy = true;
     }
 
     private void scheduleNextDeparture() {
@@ -144,8 +148,6 @@ public class NodeB extends AbstractNode{
         Event departureForThis = new Event(firstDeparture, EventType.DEPARTURE,name,1, firstToComplete.getId());
         //aggiunta evento departure alla coda dello scheduler
         scheduler.addEvent(departureForThis);
-
-        //out.println("NODO "+name+": creato evento departure ad istante:"+departureForThis.getTime());
     }
 
     private void sendJobToServer(Job j) {
@@ -175,9 +177,9 @@ public class NodeB extends AbstractNode{
     }
 
     //METODO PER DEBUG
-    public void debugPrint() {
+    public void debugPrint(double time) {
         for (Job j: jobsInService) {
-            out.println("DEBUG NODO "+name+": job id: "+j.getId()+", rst: "+j.getRemainingServiceTime());
+            out.println("DEBUG NODO "+name+": at time: "+time+"job id: "+j.getId()+", rst: "+j.getRemainingServiceTime());
         }
     }
 

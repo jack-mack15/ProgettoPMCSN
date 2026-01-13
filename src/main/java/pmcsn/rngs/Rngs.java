@@ -1,194 +1,139 @@
 package pmcsn.rngs;
 
-/* -------------------------------------------------------------------------
- * This is an Java library for multi-stream random number generation.
- * The use of this library is recommended as a replacement for the Java
- * class Random, particularly in simulation applications where the
- * statistical 'goodness' of the random number generator is important.
- * The library supplies 256 streams of random numbers; use
- * selectStream(s) to switch between streams indexed s = 0,1,...,255.
- *
- * The streams must be initialized.  The recommended way to do this is by
- * using the function plantSeeds(x) with the value of x used to initialize
- * the default stream and all other streams initialized automatically with
- * values dependent on the value of x.  The following convention is used
- * to initialize the default stream:
- *    if x > 0 then x is the state
- *    if x < 0 then the state is obtained from the system clock
- *    if x = 0 then the state is to be supplied interactively.
- *
- * The generator used in this library is a so-called 'Lehmer random number
- * generator' which returns a pseudo-random number uniformly distributed
- * 0.0 and 1.0.  The period is (m - 1) where m = 2,147,483,647 and the
- * smallest and largest possible values are (1 / m) and 1 - (1 / m)
- * respectively.  For more details see:
- *
- *       "Random Number Generators: Good Ones Are Hard To Find"
- *                   Steve Park and Keith Miller
- *              Communications of the ACM, October 1988
- *
- * Name            : Rngs.java  (Random Number Generation - Multiple Streams)
- * Authors         : Steve Park & Dave Geyer
- * Translated by   : Jun Wang & Richard Dutton
- * Language        : Java
- * Latest Revision : 6-10-04
- * -------------------------------------------------------------------------
- */
-
-import java.io.*;
-import java.util.*;
-
-
 public class Rngs {
 
-    long MODULUS      = 2147483647; /* DON'T CHANGE THIS VALUE                  */
-    long MULTIPLIER   = 48271;      /* DON'T CHANGE THIS VALUE                  */
-    static long CHECK = 399268537L; /* DON'T CHANGE THIS VALUE                  */
-    long DEFAULT      = 123456789L; /* initial seed, use 0 < DEFAULT < MODULUS  */
-
-    int STREAMS       = 256;        /* # of streams, DON'T CHANGE THIS VALUE    */
-    long A256         = 22925;      /* jump multiplier, DON'T CHANGE THIS VALUE */
-
-    /* Barry Lawson 8 Nov 2007 */
-    // Consistent with the changes to the Rvgs constructor, the seed[] array and
-    // its associated variables should not be declared static.  If they are,
-    // different instances of the Rngs class (which may be considered as
-    // _different_ generators) would share the same seed[] array.  Instead,
-    // each Rngs instance should have its own copy of seed[].
-
-//  static long[] seed;                     /* current state of each stream   */
-//  static int  stream        = 0;          /* stream index, 0 is the default */
-//  static int  initialized   = 0;          /* test for stream initialization */
-
-    long[] seed;                     /* current state of each stream   */
-    int  stream        = 0;          /* stream index, 0 is the default */
-    int  initialized   = 0;          /* test for stream initialization */
-    /* Barry Lawson 8 Nov 2007 */
+    //modulo m
+    private final long m = 2147483647;
+    //moltiplier a
+    private final long a = 48271;
+    //default per il seed 0
+    private final long DEFAULT = 123456789L;
+    //numero di stream massimi
+    private final int STREAMS = 256;
+    //jump multiplier j
+    private final long j = 22925;
 
 
+    //array di sstream
+    private long[] streams;
+
+    //array di seed iniziali degli stream
+    private  long[] seeds;
+
+    //cursor degli stream
+    private int  stream = 0;
+    int initialize = 0;
+
+    //indica l'indice del seed iniziale della run. Ad ogni run viene aggiornato
+    private int runCursor;
 
 
-    public Rngs () {
-        seed = new long[STREAMS];
 
-        /* Barry Lawson 8 Nov 2007 */
-        // The C version by default has the first entry in the seed[] array
-        // set to DEFAULT even if you don't use PlantSeeds(). The Java
-        // version should do the same, otherwise calls to random() without a
-        // preceding plantSeeds() or selectStream() will always return 1.0
-        // (see comments in Rvgs.java)
-        seed[0] = DEFAULT;
-        /* Barry Lawson 8 Nov 2007 */
+
+
+    public Rngs (long x) {
+        streams = new long[STREAMS];
+        seeds = new long[STREAMS];
+        runCursor = 0;
+        plantSeeds(x);
     }
 
+    //funzione che ritorna un numero reale in modo uniformemente distribuito tra 0.0 e 1.0
     public double random() {
-        /* ----------------------------------------------------------------
-         * Random returns a pseudo-random real number uniformly distributed
-         * between 0.0 and 1.0.
-         * ----------------------------------------------------------------
-         */
-        long Q = MODULUS / MULTIPLIER;
-        long R = MODULUS % MULTIPLIER;
+
+        long Q = m / a;
+        long R = m % a;
         long t;
 
-        t = MULTIPLIER * (seed[stream] % Q) - R * (seed[stream] / Q);
+        t = a * (streams[stream] % Q) - R * (streams[stream] / Q);
         if (t > 0)
-            seed[stream] = t;
+            streams[stream] = t;
         else
-            seed[stream] = t + MODULUS;
-        return ((double) seed[stream] / MODULUS);
+            streams[stream] = t + m;
+        return ((double) streams[stream] / m);
     }
 
-    public void plantSeeds(long x) {
-        /* ---------------------------------------------------------------------
-         * Use this function to set the state of all the random number generator
-         * streams by "planting" a sequence of states (seeds), one per stream,
-         * with all states dictated by the state of the default stream.
-         * The sequence of planted states is separated one from the next by
-         * 8,367,782 calls to Random().
-         * ---------------------------------------------------------------------
-         */
-        long Q = MODULUS / A256;
-        long R = MODULUS % A256;
-        int  j;
-        int  s;
+    //funzione che setta tutti i seed degli stream a partire dal valore specificato x
+    //invocata SOLO dal costruttore per evitare problemi
+    private void plantSeeds(long x) {
 
-        initialized = 1;
-        s = stream;                            /* remember the current stream */
-        selectStream(0);                       /* change to stream 0          */
-        putSeed(x);                            /* set seed[0]                 */
-        stream = s;                            /* reset the current stream    */
-        for (j = 1; j < STREAMS; j++) {
-            x = A256 * (seed[j - 1] % Q) - R * (seed[j - 1] / Q);
-            if (x > 0)
-                seed[j] = x;
-            else
-                seed[j] = x + MODULUS;
+        long Q = m / j;
+        long R = m % j;
+
+        putSeed(x);
+
+        for (int j = 1; j < STREAMS; j++) {
+            x = this.j * (streams[j - 1] % Q) - R * (streams[j - 1] / Q);
+            if (x > 0) {
+                streams[j] = x;
+                seeds[j] = x;
+            }
+            else {
+                streams[j] = x + m;
+                seeds[j] = x + m;
+            }
         }
     }
 
-    public void putSeed(long x) {
-        /* ---------------------------------------------------------------
-         * Use this function to set the state of the current random number
-         * generator stream according to the following conventions:
-         *    if x > 0 then x is the state (unless too large)
-         *    if x < 0 then the state is obtained from the system clock
-         *    if x = 0 then the state is to be supplied interactively
-         * ---------------------------------------------------------------
-         */
-        boolean ok = false;
+    //funzione che imposta il primo seed, elemento 0-esimo
+    //se x è troppo grande si prende il x mod m.
+    //se x è negativo o pari a 0, utilizzo il default
+    private void putSeed(long x) {
 
         if (x > 0)
-            x = x % MODULUS;                            /* correct if x is too large  */
-        if (x < 0) {
-            Date now = new Date();
-            x = now.getTime();
-//      x = ((unsigned long) time((time_t *) NULL)) % MODULUS;
+            x = x % m;
+        if (x <= 0) {
+            x = DEFAULT;
         }
-        if (x == 0)
-            while (!ok) {
-                try {
-                    System.out.print("\nEnter a positive integer seed (9 digits or less) >> ");
-                    String line;
-                    InputStreamReader r = new InputStreamReader(System.in);
-                    BufferedReader ReadThis = new BufferedReader(r);
-
-                    line = ReadThis.readLine();
-                    x = Long.parseLong(line);
-                } catch (IOException e) {
-                } catch (NumberFormatException nfe) {
-                }
-                ok = (0 < x) && (x < MODULUS);
-                if (!ok)
-                    System.out.println("\nInput out of range ... try again");
-            }
-
-        seed[stream] = x;
+        streams[0] = x;
+        seeds[0] = x;
     }
 
-    public long getSeed() {
-        /* ---------------------------------------------------------------
-         * Use this function to get the state of the current random number
-         * generator stream.
-         * ---------------------------------------------------------------
-         */
-        return seed[stream];
+    //ritorna l'indice dell'array iniziale della run
+    public int getRunCursor() {
+        return runCursor;
     }
 
-    public void selectStream(int index) {
-        /* ------------------------------------------------------------------
-         * Use this function to set the current random number generator
-         * stream -- that stream from which the next random number will come.
-         * ------------------------------------------------------------------
-         */
-        stream = index % STREAMS;
-        if ((initialized == 0) && (stream != 0))   /* protect against        */
-            plantSeeds(DEFAULT);                     /* un-initialized streams */
+    public void setRunCursor() {
+        runCursor += 6;
     }
 
-    /* ------------------------------------------------------------------
-     * Use this (optional) function to test for a correct implementation.
-     * ------------------------------------------------------------------
-     */
+    //funzione che permette di selezionare uno stream. La successiva invocazione di random
+    //utilizzerà lo stream selezionato con selectStream().
+    public void selectStream(String node) {
+        int index = getIndex(node);
+        stream = (index + runCursor) % STREAMS;
+    }
 
+    public long[] getSeeds() {
+        long[] currentSeeds = new long[6];
+
+        currentSeeds[0] = seeds[runCursor];
+        currentSeeds[1] = seeds[runCursor+1];
+        currentSeeds[2] = seeds[runCursor+2];
+        currentSeeds[3] = seeds[runCursor+3];
+        currentSeeds[4] = seeds[runCursor+4];
+        currentSeeds[5] = seeds[runCursor+5];
+
+        return currentSeeds;
+    }
+
+    public int getIndex(String node) {
+        switch (node) {
+            case "A_1":
+                return 1;
+            case "A_2":
+                return 2;
+            case "A_3":
+                return 3;
+            case "B":
+                return 4;
+            case "P":
+                return 5;
+            case "EXT":
+                return 0;
+            default:
+                return -1;
+        }
+    }
 }

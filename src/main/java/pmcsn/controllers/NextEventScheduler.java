@@ -3,6 +3,7 @@ package pmcsn.controllers;
 import pmcsn.centers.System;
 import pmcsn.estimators.CopyEstimator;
 import pmcsn.estimators.PopulationEstimator;
+import pmcsn.estimators.Statistics;
 import pmcsn.events.Event;
 import pmcsn.events.EventType;
 import pmcsn.rngs.Rngs;
@@ -16,8 +17,11 @@ public class NextEventScheduler {
     //clock globale del sistema
     private double clock;
 
-    //tempo massimo di simulazione
-    private double stopTime;
+    //numero di job massimi delle run
+    private long maxNumOfJobs;
+
+    //numero di job attualmente arrivati e usciti dal sistema
+    private long curNumOfJobs = 0;
 
     //coda globale che contiene tutti gli eventi
     //PriorityQueue in automatico ordina gli eventi sulla base del loro istante di arrivo
@@ -36,18 +40,26 @@ public class NextEventScheduler {
     //istanza del sistema, contiene tutti i centri
     private System system;
 
+    private double samplingPeriod = 2.0;
+
     public void resetScheduler() {
         eventList = new PriorityQueue<>();
         this.clock = 0.0;
-        stopTime = 0.0;
+        maxNumOfJobs = 0;
+        curNumOfJobs = 0;
     }
 
 
     //METODI DI INIZIALIZZAZIONE
-    //init della classe rngs
+    //init della classe rngs e seeds di output
     public void initRngs(long seed) {
-        this.rng = new Rngs();
-        this.rng.plantSeeds(seed);
+        if (this.rng == null) {
+            this.rng = new Rngs(seed);
+            Statistics.getInstance().setSeedsForOutput(rng.getSeeds());
+        } else {
+            this.rng.setRunCursor();
+            Statistics.getInstance().setSeedsForOutput(rng.getSeeds());
+        }
     }
     //init della classe ArrivalController
     public void initArrival(double arrivalRate) {
@@ -74,19 +86,25 @@ public class NextEventScheduler {
     public Event getNext() {
 
         if (checkQueue()) {
-            Event e = this.eventList.poll();
-            return e;
+            return this.eventList.poll();
         }
         return null;
     }
 
-    public int runSimulation() {
+    //metodo che implementa la simulazione. ritorna l'ultimo valore di clock al termine della run.
+    public double runSimulation() {
         this.clock = 0;
         Event e;
 
+        //creazione primo evento di sampling
+        if(samplingPeriod > 0.0) {
+            Event firstSampl = new Event(samplingPeriod, EventType.SAMPLING, "", -1, -1);
+            addEvent(firstSampl);
+        }
+
 
         //fase di simulazione
-        while (!eventList.isEmpty() || clock <= stopTime) {
+        while (!eventList.isEmpty() && curNumOfJobs < maxNumOfJobs) {
             e = getNext();
             if (e == null) {
                 //la coda di eventi è vuota, errore
@@ -97,23 +115,17 @@ public class NextEventScheduler {
             //evento valido
             //verifico che evento sia
             if (e.getType() == EventType.ARRIVAL) {
-
-                //out.println("SCHED: arrival ad istante: "+e.getTime()+", per nodo: "+e.getNode()+" con classe: "+e.getClassId());
                 setClock(e.getTime());
-
                 if (e.getClassId() == -1) {
                     //il caso -1 riguarda arrivi dall'esterno e quindi richiede una generazione successiva di
                     //arrivo da esterno
-                    if (clock <= stopTime) {
-                        arrivalController.generateExtArrival();
-                    }
+                    arrivalController.generateExtArrival();
                     system.handleArrival(e,"A");
                 } else {
                     system.handleArrival(e,e.getNode());
                 }
 
             } else if (e.getType() == EventType.DEPARTURE) {
-                //out.println("SCHED: NODO "+e.getNode()+" departure at "+e.getTime());
                 setClock(e.getTime());
                 system.handleDeparture(e,e.getNode());
             } else if (e.getType() == EventType.CREATE) {
@@ -124,6 +136,12 @@ public class NextEventScheduler {
                 //richiesta distruzione copia di un server
                 system.handleCopyDestroy(e);
                 setClock(e.getTime());
+            } else if (e.getType() == EventType.SAMPLING) {
+                Statistics.getInstance().onSampling(e.getTime());
+                //creazione futuro sampling
+                Event sampl = new Event(e.getTime()+samplingPeriod,EventType.SAMPLING,"",-1,-1);
+                addEvent(sampl);
+                setClock(e.getTime());
             }
 
 
@@ -131,11 +149,9 @@ public class NextEventScheduler {
 
         PopulationEstimator.getInstance().setFinishTime(clock);
         CopyEstimator.getInstance().setFinishTime(clock);
-        out.println("\n\nin tutto ci sono stati questi arrivi: "+arrivalController.getNumArrivals()+"\n\n");
-        out.println("in tutto ci sono state copie di B:"+system.getCopiesNum()+"\n\n");
-        system.getCopiesNum();
-
-        return 0;
+        out.println("in tutto ci sono state copie di B:"+system.getCopiesNum());
+        out.println("ci sono stati "+curNumOfJobs+" jobs");
+        return clock;
     }
 
     //metodo che va a prendere un evento departure e lo rimuove se fosse presente
@@ -152,16 +168,35 @@ public class NextEventScheduler {
         return null;
     }
 
-    public void setStopTime(double stopTime) {
-        this.stopTime = stopTime;
+    public void removeDestroyEvent(String nodeName) {
+        //il check viene già fatto dal nodo interessato
+        PriorityQueue<Event> temp = new PriorityQueue<>(eventList);
+        while (!temp.isEmpty()) {
+            Event e = temp.poll();
+            if(e.getType() == EventType.DESTROY && e.getNode() == nodeName) {
+                eventList.remove(e);
+                return;
+            }
+        }
     }
+
+    public void setSamplingPeriod(double period) {
+        this.samplingPeriod = period;
+    }
+
+    public void setMaxNumOfJobs(long maxNumOfJobs) {
+        this.maxNumOfJobs = maxNumOfJobs;
+    }
+
+    public void incrementCurNumOfJobs() {
+        this.curNumOfJobs += 1;
+    }
+
     public double getClock() {
         return this.clock;
     }
     public void setClock(double time) {
         this.clock = time;
-        //out.
-        // ("CLOCK: clock is now "+time+"\n");
     }
     public Rngs getRng() {
         return rng;

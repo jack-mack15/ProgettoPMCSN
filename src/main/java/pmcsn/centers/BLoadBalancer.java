@@ -103,7 +103,7 @@ public class BLoadBalancer {
 
     //selectNode che riempie sempre il primo a disposizione
     private NodeB selectNode(Event event) {
-        int limite = 8;
+        int limite = 5;
 
         //caso no scaling
         if (!isScaling) {
@@ -241,7 +241,7 @@ public class BLoadBalancer {
 
     private void printSituation() {
         for (NodeB node: bNodes) {
-            node.debugPrint();
+            //node.debugPrint();
         }
         out.println("\n\n");
     }

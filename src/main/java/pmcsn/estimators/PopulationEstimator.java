@@ -16,13 +16,26 @@ public class PopulationEstimator {
 
     private double finishTime = 0.0;
 
-    public void resetPopulation() {
-        popA = new Population();
-        popB = new Population();
-        popP = new Population();
-        popSystem = new Population();
+    //metodo per resettare le population
+    public void resetPopulation(String node, double time) {
+        getPopulation(node).resetPopulation(time);
     }
 
+    public void hardReset() {
+        popA.hardReset();
+        popB.hardReset();
+        popP.hardReset();
+        popSystem.hardReset();
+    }
+
+    public void resetAllPopulation(double time) {
+        popA.resetPopulation(time);
+        popB.resetPopulation(time);
+        popP.resetPopulation(time);
+        popSystem.resetPopulation(time);
+    }
+
+    //metodo che aggiorna la popolazione del nodo a cui arriva un job
     public void updatePopulationOnArrival(Job j) {
         Population temp = getPopulation(j.getNode());
         if (temp != null) {
@@ -33,6 +46,7 @@ public class PopulationEstimator {
         }
     }
 
+    //meotodo che aggiorna la popolazione del nodo da cui parte un job
     public void updatePopulationOnDeparture(Job j) {
         Population temp = getPopulation(j.getNode());
         if (temp != null) {
@@ -43,6 +57,7 @@ public class PopulationEstimator {
         }
     }
 
+    //funzione ausilio per ottenere l'istanza corretta di Population
     private Population getPopulation(String node) {
         switch (node) {
             case "A":
@@ -51,7 +66,7 @@ public class PopulationEstimator {
                 return popB;
             case "P":
                 return popP;
-            case "SYSTEM":
+            case "System":
                 return popSystem;
             default:
                 return null;
@@ -60,8 +75,8 @@ public class PopulationEstimator {
 
     //metodo che ritorna le medie della popolazione per un nodo o per il sistema
     //per il sistema usare la stringa SYSTEM
-    public double getPopulationMean(String node) {
-        return getPopulation(node).getPopulationMean(finishTime);
+    public double getPopulationMean(String node, double time) {
+        return getPopulation(node).getPopulationMean(time);
     }
 
     //simile al metodo di sopra ma per la varianza
@@ -70,18 +85,18 @@ public class PopulationEstimator {
     }
 
     //metodo per ottenere l'utilization
-    public double getUtilization(String node) {
+    public double getUtilization(String node, double time) {
         Population pop = getPopulation(node);
         if (pop != null) {
-            return pop.getUtilization(finishTime);
+            return pop.getUtilization(time);
         }
         return -1.0;
     }
 
-    public double getThroughput(String node) {
+    public double getThroughput(String node, double time) {
         Population pop = getPopulation(node);
         if (pop != null) {
-            return pop.getThroughput(finishTime);
+            return pop.getThroughput(time);
         }
         return -1.0;
     }

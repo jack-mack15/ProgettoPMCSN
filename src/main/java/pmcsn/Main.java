@@ -5,8 +5,8 @@ import static java.lang.System.out;
 public class Main {
     public static void main(String[] args) {
 
-        out.println("Inizio RUN!\n");
-        run();
+        out.println(1.0/0.5);
+        //run();
         //inizio run
     }
 

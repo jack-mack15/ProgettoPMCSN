@@ -1,8 +1,7 @@
 package pmcsn.estimators;
 
 import pmcsn.entities.Job;
-
-import static java.lang.System.out;
+import pmcsn.files.OutputFileGenerator;
 
 public class Statistics {
 
@@ -12,100 +11,62 @@ public class Statistics {
         return istanza;
     }
 
-    //lista di copie di Estimator per ogni tipo di metrica
-    private Estimator responseTimeEstimator = new Estimator();
-    private Estimator waitTimeEstimator = new Estimator();
-    private PopulationEstimator populationEstimator = PopulationEstimator.getInstance();
-    private  GlobalEstimator globalEstimator = new GlobalEstimator();
+    //istanza del batch means
+    private BatchMeansEstimator batchMeansEstimator = BatchMeansEstimator.getInstance();
+    //estimator per esperimenti non batch means
+    private ClassicStatistics simpleRun = new ClassicStatistics();
+    //experiment type
+    private int type;
+    //seeds usati dalle componenti
+    private long[] seeds = new long[6];
 
-
-    //metodo che aggiorna i vari estimator con la departure di un job
-    public void updateEstimators(Job j) {
-
-        //tempi significativi del job
-        double arrivalTime = j.getArrivalTime();
-        double completeTime = j.getCompleteTime();
-        double serviceTime = j.getServiceTime();
-        double responseTime = completeTime-arrivalTime;
-        double waitTime = responseTime-serviceTime;
-
-        //out.println("JOB di "+j.getNode()+" con a: "+arrivalTime+ " c: "+completeTime+ " s: "+serviceTime);
-
-        //aggiornamento metriche per nodo
-        responseTimeEstimator.update(j.getNode(),responseTime);
-        waitTimeEstimator.update(j.getNode(),waitTime);
-
-        //aggiornamento metriche globali
-        globalEstimator.update(j);
-
+    //metodo che viene invocato in caso di evento sampling
+    public void onSampling(double time) {
+        if (type == 0) {
+            simpleRun.logSampling(time,seeds[0]);
+        }
     }
 
+    public void setSeedsForOutput(long[] seeds) {
+        this.seeds = seeds;
+    }
+
+    //questo metodo viene invocato al completamento di ogni job da parte di ogni nodo, indici locali e in caso anche globali
+    public void updateEstimators(String node, Job job) {
+        if (type == 0) {
+            //simple experiments
+            simpleRun.updateStatistics(node,job);
+        } else if (type == 1) {
+            //batch means
+            batchMeansEstimator.updateBatchStats(node,job);
+        }
+    }
+
+
+    //metodo per impostare il tipo di esperimento e dunque statistiche.
+    //0 è un esperimento semplice
+    //1 è esperimento batch means
+    public void setType(int type) {
+        this.type = type;
+    }
+
+    //metodo per resettare tutti gli estimators per poi riusare la classe statistic per un'altra run
     public void resetStatistics() {
-        responseTimeEstimator = new Estimator();
-        waitTimeEstimator = new Estimator();
-        PopulationEstimator.getInstance().resetPopulation();
-        globalEstimator = new GlobalEstimator();
-    }
-    public void printStatistics() {
-        out.println("NODO A: STATISTICHE--------------------");
-        out.println("mean response time: "+responseTimeEstimator.getMean("A"));
-        out.println("mean wait time: "+waitTimeEstimator.getMean("A"));
-        out.println("mean population: "+populationEstimator.getPopulationMean("A"));
-        out.println("utilizzazione: "+populationEstimator.getUtilization("A"));
-        out.println("throughput: "+populationEstimator.getThroughput("A"));
-        out.println("\n\n");
-
-        out.println("NODO B: STATISTICHE--------------------");
-        out.println("mean response time: "+responseTimeEstimator.getMean("B"));
-        out.println("mean wait time: "+waitTimeEstimator.getMean("B"));
-        out.println("mean population: "+populationEstimator.getPopulationMean("B"));
-        out.println("utilizzazione: "+populationEstimator.getUtilization("B"));
-        out.println("throughput: "+populationEstimator.getThroughput("B"));
-        out.println("\n\n");
-
-        out.println("NODO P: STATISTICHE--------------------");
-        out.println("mean response time: "+responseTimeEstimator.getMean("P"));
-        out.println("mean wait time: "+waitTimeEstimator.getMean("P"));
-        out.println("mean population: "+populationEstimator.getPopulationMean("P"));
-        out.println("utilizzazione: "+populationEstimator.getUtilization("P"));
-        out.println("throughput: "+populationEstimator.getThroughput("P"));
-        out.println("\n\n");
-
-        out.println("SISTEMA: STATISTICHE--------------------");
-        out.println("mean response time: "+globalEstimator.getResponseTimeMean());
-        out.println("mean population: "+populationEstimator.getPopulationMean("SYSTEM"));
-        out.println("utilizzazione: "+populationEstimator.getUtilization("SYSTEM"));
-        out.println("throughput: "+populationEstimator.getThroughput("SYSTEM"));
-
-        out.println("\n\nSTAMPA VERIFICA-------------------------------------------");
-        double temp = responseTimeEstimator.getMean("A")*3+responseTimeEstimator.getMean("B")+responseTimeEstimator.getMean("P");
-        out.println("media response time ricalcolata: "+temp);
-        temp = populationEstimator.getPopulationMean("A")+populationEstimator.getPopulationMean("B")+populationEstimator.getPopulationMean("P");
-        out.println("media popolazione ricalcolata: "+temp);
-
-    }
-
-    public double getPopMean(String node) {
-        return populationEstimator.getPopulationMean(node);
-    }
-
-    public double getUtilizationMean(String node) {
-        return populationEstimator.getUtilization(node);
-    }
-
-    public double getResponseTimeMean(String node) {
-        if (node == "SYSTEM") {
-            return globalEstimator.getResponseTimeMean();
-        } else {
-            return responseTimeEstimator.getMean(node);
+        if (type == 0) {
+            simpleRun.resetStatistics();
+        } else if (type == 1) {
+            batchMeansEstimator.resetBatch(0.0);
         }
     }
 
-    public double getResponseTimeStandDev(String node) {
-        if (node == "SYSTEM") {
-            return globalEstimator.getResponseTimeStandardDeviation();
-        } else {
-            return responseTimeEstimator.getStandardDeviation(node);
+    public void outputStatistics(double finish) {
+        if (type == 0) {
+            //stampa risultato della run semplice
+            simpleRun.printStatistics(finish);
+        } else if (type == 1) {
+            //stampa del batch mean
+            batchMeansEstimator.outputStatistics();
         }
     }
+
 }

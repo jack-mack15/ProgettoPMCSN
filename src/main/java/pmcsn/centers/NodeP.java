@@ -30,10 +30,9 @@ public class NodeP extends AbstractNode{
 
     @Override
     public void handleArrival(Event e) {
-        //out.println("NODO P: arrival ad istante: "+e.getTime());
 
         //stream del generatore
-        int streamSelection = 4;
+        String streamSelection = "P";
         //la classe uscente sarà sempre 1
         int nextJobClass = 2;
 
@@ -44,8 +43,6 @@ public class NodeP extends AbstractNode{
         //creazione job e inserimento nella giusta lista
         Job newJob = new Job("P", e.getIdRequest(), scheduler.getClock(),nextJobClass, serviceTime);
         PopulationEstimator.getInstance().updatePopulationOnArrival(newJob);
-
-        //out.println("NODO P: job creato ad istante: "+scheduler.getClock()+", con service time: "+serviceTime+ " e rst: "+newJob.getRemainingServiceTime());
 
         updateRemainingServiceTime(scheduler.getClock());
 
@@ -65,7 +62,6 @@ public class NodeP extends AbstractNode{
 
     @Override
     public void handleDeparture(Event e) {
-        //out.println("NODO P: departure ad istante: "+e.getTime());
 
         //aggiorno i tempi di servizio rimanenti, in base al clock attuale
         updateRemainingServiceTime(scheduler.getClock());
@@ -93,7 +89,7 @@ public class NodeP extends AbstractNode{
             if (temp <= j.getEpsilon()) {
                 toRemove.add(j);
                 j.setCompleteTime(scheduler.getClock());
-                Statistics.getInstance().updateEstimators(j);
+                Statistics.getInstance().updateEstimators("P",j);
                 PopulationEstimator.getInstance().updatePopulationOnDeparture(j);
                 sendJobToServer(j);
             }
@@ -129,8 +125,6 @@ public class NodeP extends AbstractNode{
         Event departureForThis = new Event(firstDeparture, EventType.DEPARTURE,"P",2,firstToComplete.getId());
         //aggiunta evento departure alla coda dello scheduler
         scheduler.addEvent(departureForThis);
-
-        //out.println("NODO P: creato evento departure ad istante:"+departureForThis.getTime());
     }
 
     private void sendJobToServer(Job j) {

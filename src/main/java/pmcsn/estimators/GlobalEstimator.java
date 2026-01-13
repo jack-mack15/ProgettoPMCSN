@@ -1,8 +1,11 @@
 package pmcsn.estimators;
 
 import pmcsn.entities.Job;
+import pmcsn.files.OutputFileGenerator;
 
 import java.util.ArrayList;
+
+import static java.lang.System.out;
 
 public class GlobalEstimator {
     private Welford responseTimeEstimator;
@@ -13,11 +16,14 @@ public class GlobalEstimator {
         this.responseTimeEstimator = new Welford();
     }
 
+    //metodo che viene invocato all'arrivo o all'uscita di un job nel sistema.
+    //in realtà un nuovo job viene aggiunto alla lista di questa classe quando A completa tale job. Non è un problema perchè il job possiede
+    //l'istante di arrivo
     public void update(Job job) {
-        if(job.getJobClass() == -1 && job.getNode() == "A") {
+        if(job.getJobClass() == -1) {
             //arrivo nel sistema
             onArrival(job);
-        } else if (job.getJobClass() == 2 && job.getNode() == "A") {
+        } else if (job.getJobClass() == 2) {
             //uscita dal sistema
             onExit(job);
         }
@@ -28,6 +34,9 @@ public class GlobalEstimator {
         list.add(job);
     }
 
+    //all'uscita del job dal sistema utilizzo due job: uno che viene ricevuto tramite argomento e l'altro si trova
+    //nella lista list. questo perchè il primo job citato possiede il corretto istante di uscita mentre il secondo
+    //possiede l'istante di arrivo nel sistema. utilzzo l'id del job per ottenere la coppia corretta
     private void onExit(Job job) {
         for (Job j: list) {
             if (j.getId() == job.getId()) {
@@ -35,10 +44,15 @@ public class GlobalEstimator {
                 //i due job sono differenti in java ma concettualmente stesso job
                 double responseTime = job.getCompleteTime() - j.getArrivalTime();
                 responseTimeEstimator.addData(responseTime);
+                //OutputFileGenerator.getInstance().logRecordACS(responseTime);
                 list.remove(j);
                 return;
             }
         }
+    }
+
+    public void resetGlobalEstimator() {
+        responseTimeEstimator = new Welford();
     }
 
     public double getResponseTimeMean() {
