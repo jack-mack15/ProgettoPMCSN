@@ -1,11 +1,13 @@
 package pmcsn.files;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
 public class OutputFileGenerator {
-    private PrintWriter writer;
+    private PrintWriter stats;
+    private PrintWriter batch;
     private int type;
     private static final OutputFileGenerator istanza = new OutputFileGenerator();
 
@@ -22,14 +24,17 @@ public class OutputFileGenerator {
             this.type = simType;
             //true serve per append dei dati
             FileWriter fw = new FileWriter(filename, false);
-            writer = new PrintWriter(fw);
+            stats = new PrintWriter(fw);
             //qui scrivo l'header
             if (simType == 0) {
                 //header per transitorio. qui stampo una sola metrica
-                writer.println("Time,Metric,Value,Seed,Component");
-            } else if (simType == 1){
+                stats.println("Time,Metric,Value,Seed,Component");
+            } else if (simType == 1 || simType == 2){
                 //header per batch means
-                writer.println("Time,Metric,Value,Batch,Component");
+                stats.close();
+                fw = new FileWriter(filename, false);
+                batch = new PrintWriter(fw);
+                batch.println("Time,Metric,Value,Batch,Component");
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -44,7 +49,7 @@ public class OutputFileGenerator {
                     temp += d;
                 }
                 double rt = temp / acs;
-                writer.printf(java.util.Locale.US, "%.4f%n", rt);
+                stats.printf(java.util.Locale.US, "%.4f%n", rt);
                 data = new double[acs];
                 dataIndex = 0;
             } else {
@@ -62,7 +67,7 @@ public class OutputFileGenerator {
         // seed: il seed corrente
         // componente: "System", "A", "B", o "P"
 
-        writer.printf(java.util.Locale.US, "%.6f,%s,%.6f,%d,%s%n", time, metric, value, seed, component);
+        stats.printf(java.util.Locale.US, "%.6f,%s,%.6f,%d,%s%n", time, metric, value, seed, component);
     }
 
     //metodo che salva il record sul file batch means
@@ -72,13 +77,42 @@ public class OutputFileGenerator {
         // value: valore delle metrica (misurazione)
         // batch: indice del batch
         // componente: "System", "A", "B", o "P"
-        writer.printf(java.util.Locale.US, "%.6f,%s,%.6f,%d,%s%n", time, metric,value,batch,component);
+        if(this.batch != null) {
+            this.batch.printf(java.util.Locale.US, "%.6f,%s,%.6f,%d,%s%n", time, metric, value, batch, component);
+        }
     }
 
     public void closeFile() {
-        if (writer != null) {
-            writer.flush();
-            writer.close();
+        if (stats != null) {
+            stats.flush();
+            stats.close();
+        }
+        if (batch != null) {
+            batch.flush();
+            batch.close();
+        }
+    }
+
+    public void flushFiles() {
+        if (stats != null) {
+            stats.flush();
+        }
+        if (batch != null) {
+            batch.flush();
+        }
+    }
+
+    public void deleteBatch() {
+        File fileDaEliminare = new File("Batch.csv"); // Usa la stessa stringa 'filename' usata nel FileWriter
+
+        if (fileDaEliminare.exists()) {
+            boolean cancellato = fileDaEliminare.delete();
+
+            if (cancellato) {
+                System.out.println("File eliminato con successo.");
+            } else {
+                System.err.println("Impossibile eliminare il file. Potrebbe essere ancora aperto o mancano i permessi.");
+            }
         }
     }
 }

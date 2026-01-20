@@ -10,11 +10,11 @@ public class System {
 
     private NextEventScheduler scheduler;
 
-    public System(NextEventScheduler scheduler, boolean scaling) {
+    public System(NextEventScheduler scheduler, boolean scaling, boolean isF2A, int maxNumOfBCopies, int maxJobsForCopy) {
         this.scheduler = scheduler;
-        this.serverA = new NodeA(4,scheduler);
-        this.serverP = new NodeP(4,scheduler);
-        this.bLoadBalancer = new BLoadBalancer(scheduler,"B",scaling);
+        this.serverA = new NodeA(scheduler,isF2A);
+        this.serverP = new NodeP(scheduler,isF2A);
+        this.bLoadBalancer = new BLoadBalancer(scheduler,scaling,maxNumOfBCopies,maxJobsForCopy);
     }
 
     public void handleCopyCreation(Event e) {
@@ -52,6 +52,10 @@ public class System {
         } else {
             target.handleDeparture(e);
         }
+    }
+
+    public long getBDescardedJobs() {
+        return bLoadBalancer.getDescardedJobs();
     }
 
     public int getCopiesNum() {

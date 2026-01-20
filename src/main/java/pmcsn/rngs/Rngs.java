@@ -98,6 +98,11 @@ public class Rngs {
         runCursor += 6;
     }
 
+    //attento a come lo usi eh
+    public void setRunCursorByIndex(int index) {
+        runCursor = index;
+    }
+
     //funzione che permette di selezionare uno stream. La successiva invocazione di random
     //utilizzerà lo stream selezionato con selectStream().
     public void selectStream(String node) {

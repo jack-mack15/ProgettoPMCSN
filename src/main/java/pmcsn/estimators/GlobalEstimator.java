@@ -43,6 +43,9 @@ public class GlobalEstimator {
                 //il job ha completato
                 //i due job sono differenti in java ma concettualmente stesso job
                 double responseTime = job.getCompleteTime() - j.getArrivalTime();
+                if (responseTime < 0.0) {
+                    responseTime = 1.0;
+                }
                 responseTimeEstimator.addData(responseTime);
                 //OutputFileGenerator.getInstance().logRecordACS(responseTime);
                 list.remove(j);

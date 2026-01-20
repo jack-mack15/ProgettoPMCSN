@@ -20,10 +20,13 @@ public class NodeP extends AbstractNode{
     private ArrayList<Job> jobsInService;
     private double lastUpdate;
 
-    public NodeP(int serverNumber, NextEventScheduler scheduler) {
-        super("P", serverNumber, scheduler);
-        //serviceRate = 0.4;
-        serviceRate = 0.7;
+    public NodeP(NextEventScheduler scheduler, boolean isF2A) {
+        super("P", scheduler);
+        if (isF2A) {
+            serviceRate = 0.7;
+        } else {
+            serviceRate = 0.4;
+        }
         jobsInService = new ArrayList<>();
         lastUpdate = 0.0;
     }

@@ -25,8 +25,8 @@ public class NodeB extends AbstractNode{
     //indica se c'è un evento destroy in arrivo
     private boolean uponDestroy;
 
-    public NodeB(int serverNumber, NextEventScheduler scheduler, String newName) {
-        super(newName, serverNumber, scheduler);
+    public NodeB(NextEventScheduler scheduler, String newName) {
+        super(newName, scheduler);
         serviceRate = 0.8;
         uponDestroy = false;
         jobsInService = new ArrayList<>();
@@ -117,7 +117,7 @@ public class NodeB extends AbstractNode{
     }
 
     private void scheduleDestroy() {
-        Event destroy = new Event(scheduler.getClock()+15.0,EventType.DESTROY,name,-1,-1);
+        Event destroy = new Event(scheduler.getClock()+0.0,EventType.DESTROY,name,-1,-1);
         scheduler.addEvent(destroy);
         uponDestroy = true;
     }

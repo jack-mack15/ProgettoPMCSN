@@ -45,10 +45,10 @@ public class ClassicStatistics {
         OutputFileGenerator.getInstance().logRecordTransient(time,"ResponseTime",rtSystem,seed,"System");
 
         //popolazione
-        double popA = populationEstimator.getPopulationMean("A",time);
-        double popB = populationEstimator.getPopulationMean("B",time);
-        double popP = populationEstimator.getPopulationMean("P",time);
-        double popSystem = populationEstimator.getPopulationMean("System",time);
+        double popA = populationEstimator.getPopulationMean("A",time,false);
+        double popB = populationEstimator.getPopulationMean("B",time,false);
+        double popP = populationEstimator.getPopulationMean("P",time,false);
+        double popSystem = populationEstimator.getPopulationMean("System",time,false);
 
         OutputFileGenerator.getInstance().logRecordTransient(time,"Population",popA,seed,"A");
         OutputFileGenerator.getInstance().logRecordTransient(time,"Population",popB,seed,"B");
@@ -56,10 +56,10 @@ public class ClassicStatistics {
         OutputFileGenerator.getInstance().logRecordTransient(time,"Population",popSystem,seed,"System");
 
         //throughput
-        double thrA = populationEstimator.getThroughput("A",time);
-        double thrB = populationEstimator.getThroughput("B",time);
-        double thrP = populationEstimator.getThroughput("P",time);
-        double thrSystem = populationEstimator.getThroughput("System",time);
+        double thrA = populationEstimator.getThroughput("A",time,false);
+        double thrB = populationEstimator.getThroughput("B",time,false);
+        double thrP = populationEstimator.getThroughput("P",time,false);
+        double thrSystem = populationEstimator.getThroughput("System",time,false);
 
         OutputFileGenerator.getInstance().logRecordTransient(time,"Throughput",thrA,seed,"A");
         OutputFileGenerator.getInstance().logRecordTransient(time,"Throughput",thrB,seed,"B");
@@ -67,10 +67,10 @@ public class ClassicStatistics {
         OutputFileGenerator.getInstance().logRecordTransient(time,"Throughput",thrSystem,seed,"System");
 
         //utilizzazione
-        double utA = populationEstimator.getUtilization("A",time);
-        double utB = populationEstimator.getUtilization("B",time);
-        double utP = populationEstimator.getUtilization("P",time);
-        double utSystem = populationEstimator.getUtilization("System",time);
+        double utA = populationEstimator.getUtilization("A",time,false);
+        double utB = populationEstimator.getUtilization("B",time,false);
+        double utP = populationEstimator.getUtilization("P",time,false);
+        double utSystem = populationEstimator.getUtilization("System",time,false);
 
         OutputFileGenerator.getInstance().logRecordTransient(time,"Utilization",utA,seed,"A");
         OutputFileGenerator.getInstance().logRecordTransient(time,"Utilization",utB,seed,"B");
@@ -96,46 +96,50 @@ public class ClassicStatistics {
     public void resetStatistics() {
         responseTimeEstimator = new Estimator();
         waitTimeEstimator = new Estimator();
-        PopulationEstimator.getInstance().hardReset();
+        populationEstimator.hardReset();
         globalEstimator = new GlobalEstimator();
     }
 
     public void printStatistics(double finish) {
+
         out.println("NODO A: STATISTICHE--------------------");
         out.println("mean response time: "+responseTimeEstimator.getMean("A"));
         out.println("mean wait time: "+waitTimeEstimator.getMean("A"));
-        out.println("mean population: "+populationEstimator.getPopulationMean("A",finish));
-        out.println("utilizzazione: "+populationEstimator.getUtilization("A",finish));
-        out.println("throughput: "+populationEstimator.getThroughput("A",finish));
+        out.println("mean population: "+populationEstimator.getPopulationMean("A",finish,false));
+        out.println("utilizzazione: "+populationEstimator.getUtilization("A",finish,false));
+        out.println("throughput: "+populationEstimator.getThroughput("A",finish,false));
         out.println("\n\n");
+
 
         out.println("NODO B: STATISTICHE--------------------");
         out.println("mean response time: "+responseTimeEstimator.getMean("B"));
         out.println("mean wait time: "+waitTimeEstimator.getMean("B"));
-        out.println("mean population: "+populationEstimator.getPopulationMean("B",finish));
-        out.println("utilizzazione: "+populationEstimator.getUtilization("B",finish));
-        out.println("throughput: "+populationEstimator.getThroughput("B",finish));
+        out.println("mean population: "+populationEstimator.getPopulationMean("B",finish,false));
+        out.println("utilizzazione: "+populationEstimator.getUtilization("B",finish,false));
+        out.println("throughput: "+populationEstimator.getThroughput("B",finish,false));
         out.println("\n\n");
+
 
         out.println("NODO P: STATISTICHE--------------------");
         out.println("mean response time: "+responseTimeEstimator.getMean("P"));
         out.println("mean wait time: "+waitTimeEstimator.getMean("P"));
-        out.println("mean population: "+populationEstimator.getPopulationMean("P",finish));
-        out.println("utilizzazione: "+populationEstimator.getUtilization("P",finish));
-        out.println("throughput: "+populationEstimator.getThroughput("P",finish));
+        out.println("mean population: "+populationEstimator.getPopulationMean("P",finish,false));
+        out.println("utilizzazione: "+populationEstimator.getUtilization("P",finish,false));
+        out.println("throughput: "+populationEstimator.getThroughput("P",finish,false));
         out.println("\n\n");
 
         out.println("SISTEMA: STATISTICHE--------------------");
         out.println("mean response time: "+globalEstimator.getResponseTimeMean());
-        out.println("mean population: "+populationEstimator.getPopulationMean("System",finish));
-        out.println("utilizzazione: "+populationEstimator.getUtilization("System",finish));
-        out.println("throughput: "+populationEstimator.getThroughput("System",finish));
+        out.println("mean population: "+populationEstimator.getPopulationMean("System",finish,false));
+        out.println("utilizzazione: "+populationEstimator.getUtilization("System",finish,false));
+        out.println("throughput: "+populationEstimator.getThroughput("System",finish,false));
 
+        /*
         out.println("\n\nSTAMPA VERIFICA-------------------------------------------");
         double temp = responseTimeEstimator.getMean("A")*3+responseTimeEstimator.getMean("B")+responseTimeEstimator.getMean("P");
         out.println("media response time ricalcolata: "+temp);
         temp = populationEstimator.getPopulationMean("A",finish)+populationEstimator.getPopulationMean("B",finish)+populationEstimator.getPopulationMean("P",finish);
         out.println("media popolazione ricalcolata: "+temp);
-
+        */
     }
 }

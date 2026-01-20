@@ -13,30 +13,36 @@ import static java.lang.System.out;
 
 public class BLoadBalancer {
     private ArrayList<NodeB> bNodes;
-    private ArrayList<NodeA> aNodes;
+    private int maxBcopies;
     private NextEventScheduler scheduler;
     private int numOfDestroy;
     private int numOfCreate;
     private int currentIndex;
-
+    private long descardedJobs;
+    private long acceptedJobs;
+    private long seenJobs;
+    private int maxJobsForCopy;
     private ArrayList<Event> pendingEvents;
     private boolean isScaling;
     private int lastSelected;
     private boolean hasRecentDestroy;
 
-    public BLoadBalancer(NextEventScheduler scheduler, String type, boolean isScaling) {
+    public BLoadBalancer(NextEventScheduler scheduler, boolean isScaling, int maxBcopies, int maxJobsForCopy) {
         this.scheduler = scheduler;
         this.currentIndex = 0;
         this.isScaling = isScaling;
         this.lastSelected = 0;
         this.hasRecentDestroy = false;
+        this.maxJobsForCopy = maxJobsForCopy;
+        descardedJobs = 0;
+        acceptedJobs = 0;
+        seenJobs = 0;
         bNodes = new ArrayList<>();
         pendingEvents = new ArrayList<>();
-        if (type == "A") {
-            aNodes.add(new NodeA(4, scheduler));
-        } else if (type == "B") {
-            bNodes.add(new NodeB(4, scheduler,"B_0"));
-        }
+        this.maxBcopies = maxBcopies;
+
+        bNodes.add(new NodeB(scheduler,"B_0"));
+
         numOfCreate = 0;
         numOfDestroy = 0;
     }
@@ -49,7 +55,6 @@ public class BLoadBalancer {
                         //si è ripopolato nel mentre
                         return;
                     }
-                    //out.println("LOAD BALANCER rimozione copia "+node+"-----------------------------------------------------------------------------------");
                     bNodes.remove(temp);
                     numOfDestroy++;
                     hasRecentDestroy = true;
@@ -63,8 +68,7 @@ public class BLoadBalancer {
     public void createCopy(String node) {
         currentIndex++;
         String newName = "B_"+currentIndex;
-        NodeB newCopy = new NodeB(4,scheduler,newName);
-        //out.println("LOAD BALANCER: creata copia: "+newName+"----------------------------------------------------------------------------------------------");
+        NodeB newCopy = new NodeB(scheduler,newName);
         bNodes.add(newCopy);
         numOfCreate++;
 
@@ -81,12 +85,19 @@ public class BLoadBalancer {
     public void handleArrival(Event e){
         //recupero la copia che deve ricevere l'arrivo
         NodeB node = selectNode(e);
+        seenJobs++;
         if (node == null) {
-            //caso in cui è necessario creare una nuova copia
+            //in questo caso il job viene scartato
+            descardedJobs++;
+            //todo aggiornare pop sistema
+            scheduler.incrementCurNumOfJobs();
             return;
         }
+        acceptedJobs++;
+
         node.handleArrival(e);
     }
+
     public void handleDeparture(Event e){
         NodeB selected = null;
         int selectedIndex = -1;
@@ -103,25 +114,25 @@ public class BLoadBalancer {
 
     //selectNode che riempie sempre il primo a disposizione
     private NodeB selectNode(Event event) {
-        int limite = 5;
 
         //caso no scaling
         if (!isScaling) {
             return bNodes.get(0);
         }
-        //caso scaling ma un solo nodo e libero
-        if (bNodes.size() == 1 && bNodes.get(0).getNumberOfJobsInServer() < limite) {
-            lastSelected = 0;
-            return bNodes.get(0);
-        }
-        NodeB selectedNode = null;
+        //caso scaling, con più copie di B
         for (NodeB node: bNodes) {
-            if(node.getNumberOfJobsInServer() < limite) {
+            if(node.getNumberOfJobsInServer() < maxJobsForCopy) {
                 return node;
             }
         }
         //se arrivo qua non ci sta nessuno libero
-        scheduleCreation(event);
+        if (bNodes.size() >= maxBcopies) {
+            //drop del job appena arrivato
+            return null;
+        }
+        pendingEvents.add(event);
+        createCopy("B");
+        //scheduleCreation(event);
         return null;
     }
 
@@ -246,6 +257,11 @@ public class BLoadBalancer {
         out.println("\n\n");
     }
 
+    public long getDescardedJobs() {
+        out.println("NODE B: accepted jobs are "+acceptedJobs);
+        out.println("NODE B: seen jobs are "+seenJobs);
+        return descardedJobs;
+    }
 
     public int getNumbers() {
         out.println("\n\nLOAD BALANCER: numbers of creation: "+numOfCreate);

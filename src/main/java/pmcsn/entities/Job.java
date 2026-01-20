@@ -14,7 +14,7 @@ public class Job implements Comparable<Job>{
 
     //questo valore epsilon è necessario per evitare problemi di approssimazione, ad esempio
     //t1 + t2 = t3 con t1 = t3 poichè t2 troppo piccolo
-    private final double epsilon = 1e-10;
+    private final double epsilon = 1e-8;
 
     public Job(String node, long id, double arrivalTime, int jobClass, double serviceTime) {
         this.node = node;

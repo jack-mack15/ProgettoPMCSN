@@ -19,10 +19,13 @@ public class NodeA extends AbstractNode{
     private ArrayList<Job> jobsInService;
     private double lastUpdate;
 
-    public NodeA(int serverNumber, NextEventScheduler scheduler) {
-        super("A", serverNumber, scheduler);
-        //serviceRate = new double[] {0.2,0.4,0.1};
-        serviceRate = new double[] {0.2,0.4,0.15};
+    public NodeA(NextEventScheduler scheduler,boolean isF2A) {
+        super("A", scheduler);
+        if (isF2A) {
+            serviceRate = new double[] {0.2,0.4,0.15};
+        } else {
+            serviceRate = new double[]{0.2, 0.4, 0.1};
+        }
         jobsInService = new ArrayList<>();
         lastUpdate = 0.0;
     }
@@ -202,4 +205,5 @@ public class NodeA extends AbstractNode{
         }
         return jobsInService.get(0);
     }
+
 }

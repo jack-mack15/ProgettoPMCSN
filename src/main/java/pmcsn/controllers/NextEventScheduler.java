@@ -39,8 +39,9 @@ public class NextEventScheduler {
 
     //istanza del sistema, contiene tutti i centri
     private System system;
-
-    private double samplingPeriod = 2.0;
+    private double maxTime;
+    private double samplingPeriod;
+    private double samplingStart;
 
     public void resetScheduler() {
         eventList = new PriorityQueue<>();
@@ -52,8 +53,8 @@ public class NextEventScheduler {
 
     //METODI DI INIZIALIZZAZIONE
     //init della classe rngs e seeds di output
-    public void initRngs(long seed) {
-        if (this.rng == null) {
+    public void initRngs(long seed, boolean reset) {
+        if (reset) {
             this.rng = new Rngs(seed);
             Statistics.getInstance().setSeedsForOutput(rng.getSeeds());
         } else {
@@ -61,13 +62,18 @@ public class NextEventScheduler {
             Statistics.getInstance().setSeedsForOutput(rng.getSeeds());
         }
     }
+
+    public void setCursor(int cursorIndex){
+        rng.setRunCursorByIndex(cursorIndex);
+        Statistics.getInstance().setSeedsForOutput(rng.getSeeds());
+    }
     //init della classe ArrivalController
     public void initArrival(double arrivalRate) {
         this.arrivalController = new ArrivalController(arrivalRate,this);
     }
     //init dell'istanza del sistema, mantiene traccia dei nodi del sistema
-    public void initSystem(boolean isScaling) {
-        this.system = new System(this,isScaling);
+    public void initSystem(boolean isScaling, boolean isF2A, int maxNumOfBCopies,int maxJobsForCopy) {
+        this.system = new System(this,isScaling,isF2A,maxNumOfBCopies,maxJobsForCopy);
     }
 
     //metodo che aggiunge un avento alla coda globale
@@ -98,19 +104,21 @@ public class NextEventScheduler {
 
         //creazione primo evento di sampling
         if(samplingPeriod > 0.0) {
-            Event firstSampl = new Event(samplingPeriod, EventType.SAMPLING, "", -1, -1);
+            Event firstSampl = new Event(samplingStart, EventType.SAMPLING, "", -1, -1);
             addEvent(firstSampl);
         }
 
 
         //fase di simulazione
-        while (!eventList.isEmpty() && curNumOfJobs < maxNumOfJobs) {
+        while (!eventList.isEmpty() && curNumOfJobs < maxNumOfJobs && clock < maxTime) {
             e = getNext();
             if (e == null) {
                 //la coda di eventi è vuota, errore
                 out.println("errori con la coda degli eventi\n");
                 return -1;
             }
+
+            //out.println("sto viaggiando "+clock+"  "+e.getIdRequest()+e.getNode()+e.getType()+e.getTime());
 
             //evento valido
             //verifico che evento sia
@@ -149,8 +157,11 @@ public class NextEventScheduler {
 
         PopulationEstimator.getInstance().setFinishTime(clock);
         CopyEstimator.getInstance().setFinishTime(clock);
-        out.println("in tutto ci sono state copie di B:"+system.getCopiesNum());
-        out.println("ci sono stati "+curNumOfJobs+" jobs");
+        out.println("media copie di B:"+CopyEstimator.getInstance().getNumCopyMean());
+        out.println("ci sono stati "+arrivalController.getNumArrivals()+" jobs");
+        out.println("final clock is "+clock);
+        out.println("sono stati scartati "+system.getBDescardedJobs()+" jobs da B\n\n");
+
         return clock;
     }
 
@@ -180,12 +191,20 @@ public class NextEventScheduler {
         }
     }
 
-    public void setSamplingPeriod(double period) {
+    public void setSamplingPeriodAndStart(double period,double start) {
+        this.samplingStart = start;
         this.samplingPeriod = period;
     }
 
     public void setMaxNumOfJobs(long maxNumOfJobs) {
         this.maxNumOfJobs = maxNumOfJobs;
+    }
+    public void setMaxTime(double maxTime) {
+        if (maxTime <= 0.0) {
+            this.maxTime = Double.MAX_VALUE;
+            return;
+        }
+        this.maxTime = maxTime;
     }
 
     public void incrementCurNumOfJobs() {

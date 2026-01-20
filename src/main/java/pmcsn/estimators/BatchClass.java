@@ -27,6 +27,9 @@ public class BatchClass {
 
     public BatchClass(int size, boolean isSystem, String name, int batchNum) {
         this.size = size;
+        if(name == "A") {
+            this.size = 3*size;
+        }
         batchIndex = 0;
         cursor = 0;
         component = name;
@@ -74,6 +77,7 @@ public class BatchClass {
             //arrivo, solo salvataggio del job
             globalEstimator.update(job);
         } else {
+
             //completamento del job
             globalEstimator.update(job);
             cursor++;
@@ -87,12 +91,15 @@ public class BatchClass {
     }
 
     public void resetBatch(double newTime) {
-        populationEstimator.resetPopulation(component,newTime);
+        populationEstimator.resetPopulation(component,newTime,true);
         if (isSystem) {
             globalEstimator.resetGlobalEstimator();
         } else {
             waitTimeEstimator = new Estimator();
             responseTimeEstimator = new Estimator();
+        }
+        if (batchIndex == batchNum) {
+            batchIndex = 0;
         }
     }
 
@@ -101,9 +108,9 @@ public class BatchClass {
         if(isSystem) {
             //in caso sia batch del sistema
             double rtSystem = globalEstimator.getResponseTimeMean();
-            double popSystem = populationEstimator.getPopulationMean("System",time);
-            double thrSystem = populationEstimator.getThroughput("System",time);
-            double utSystem = populationEstimator.getUtilization("System",time);
+            double popSystem = populationEstimator.getPopulationMean("System",time,true);
+            double thrSystem = populationEstimator.getThroughput("System",time,true);
+            double utSystem = populationEstimator.getUtilization("System",time,true);
 
             OutputFileGenerator istance = OutputFileGenerator.getInstance();
 
@@ -115,10 +122,10 @@ public class BatchClass {
         } else {
             //in caso sia batch di un server
             double rt = responseTimeEstimator.getMean(component);
-            double pop = populationEstimator.getPopulationMean(component,time);
+            double pop = populationEstimator.getPopulationMean(component,time,true);
             double wait = waitTimeEstimator.getMean(component);
-            double thr = populationEstimator.getThroughput(component,time);
-            double ut = populationEstimator.getUtilization("A",time);
+            double thr = populationEstimator.getThroughput(component,time,true);
+            double ut = populationEstimator.getUtilization(component,time,true);
 
             OutputFileGenerator istance = OutputFileGenerator.getInstance();
 

@@ -1,5 +1,7 @@
 package pmcsn.events;
 
+import static java.lang.System.out;
+
 public class Event implements Comparable<Event> {
 
     private double time;
@@ -19,6 +21,33 @@ public class Event implements Comparable<Event> {
 
     @Override
     public int compareTo(Event other){
+        //other è l'elemento già nella lista degli eventi
+        /*if(Double.compare(this.time,other.time) == 0) {
+            //significa che il nuovo elemento this, ha stesso tempo di arrivo di other, già presente in lista
+            EventType newT = this.getType();
+            EventType oldT = other.getType();
+            if (newT == EventType.SAMPLING || oldT == EventType.SAMPLING) {
+                //mi interessa poco
+                return 0;
+            } else if (this.getNode() == "P" || other.getNode() == "P") {
+                //non mi interessa
+                return 0;
+            } else if (newT == EventType.ARRIVAL && other.getNode() == "B" && oldT == EventType.DEPARTURE && this.getNode() == "B") {
+                //arrivo in b in contemporanea con departure b
+                //deve essere in lista prima Departure di B e poi arrivo per B
+                return 1;
+            } else if (oldT == EventType.ARRIVAL && other.getNode() == "B" && newT == EventType.DEPARTURE && this.getNode() == "B") {
+                //arriva una nuova departure per B e la sto confrontando con un arrivo per B già in lista
+                //nuova departure deve essere prima
+                return -1;
+            } else if (newT == EventType.DESTROY || newT == EventType.CREATE) {
+                //nuovi eventi destroy o create, devono essere processati subito
+                return -1;
+            } else if (oldT == EventType.DESTROY || oldT == EventType.CREATE) {
+                //evento destroy e create già in lista hanno priorità
+                return 1;
+            }
+        }*/
         return Double.compare(this.time, other.time);
     }
 

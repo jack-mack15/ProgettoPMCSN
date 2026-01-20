@@ -79,6 +79,12 @@ public class Population {
         return area / observationTime;
     }
 
+    public void debug(double time) {
+        out.println(numJobs);
+        out.println(nodeDeparture);
+        out.println(getUtilization(time));
+    }
+
     //per la varianza sfrutto la formula E[X^2] - E[X]^2
     public double getPopulationVariance(double currTime) {
         double mean = getPopulationMean(currTime);

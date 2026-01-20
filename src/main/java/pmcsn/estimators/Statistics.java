@@ -1,7 +1,6 @@
 package pmcsn.estimators;
 
 import pmcsn.entities.Job;
-import pmcsn.files.OutputFileGenerator;
 
 public class Statistics {
 
@@ -47,6 +46,7 @@ public class Statistics {
     //0 è un esperimento semplice
     //1 è esperimento batch means
     public void setType(int type) {
+        PopulationEstimator.getInstance().setPopulations();
         this.type = type;
     }
 
@@ -60,7 +60,7 @@ public class Statistics {
     }
 
     public void outputStatistics(double finish) {
-        if (type == 0) {
+        if (type == 0 || type == 3) {
             //stampa risultato della run semplice
             simpleRun.printStatistics(finish);
         } else if (type == 1) {
