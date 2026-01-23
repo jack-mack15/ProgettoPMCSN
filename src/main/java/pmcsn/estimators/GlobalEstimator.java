@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 import static java.lang.System.out;
 
+//classe estimator per sistema globale
 public class GlobalEstimator {
     private Welford responseTimeEstimator;
     private ArrayList<Job> list;

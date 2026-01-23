@@ -27,6 +27,7 @@ public class Statistics {
         }
     }
 
+    //metodo per ottenere i seed della run utili per il logging
     public void setSeedsForOutput(long[] seeds) {
         this.seeds = seeds;
     }
@@ -42,6 +43,8 @@ public class Statistics {
         }
     }
 
+    //metodo per rimuovere i dati del job dal sistema
+    //usato solo in fase verifica SCALING
     public void finalizeDroppedJob(Event event) {
         if (type == 0) {
             simpleRun.dropJob(event.getIdRequest());
@@ -68,13 +71,11 @@ public class Statistics {
         }
     }
 
+    //utile per debug
     public void outputStatistics(double finish) {
-        if (type == 0 || type == 3) {
+        if (type == 0) {
             //stampa risultato della run semplice
             simpleRun.printStatistics(finish);
-        } else if (type == 1) {
-            //stampa del batch mean
-            batchMeansEstimator.outputStatistics();
         }
     }
 

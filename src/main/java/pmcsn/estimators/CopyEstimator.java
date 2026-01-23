@@ -1,5 +1,6 @@
 package pmcsn.estimators;
 
+//classe che implementa la logica per aggiornare e mantenere metrica numero di copie medie
 public class CopyEstimator {
 
     private int numCopy;
@@ -21,6 +22,7 @@ public class CopyEstimator {
         lastUpdate = 0.0;
     }
 
+    //reset utile per fine batch means
     public void hardReset() {
         this.numCopy = 1;
         this.startTime = 0.0;
@@ -29,6 +31,7 @@ public class CopyEstimator {
         this.lastUpdate = 0.0;
     }
 
+    //reset utile per batch means
     public void resetForBatch(int currNum, double newTime) {
         this.numCopy = currNum;
         this.startTime = newTime;
@@ -37,11 +40,13 @@ public class CopyEstimator {
         this.lastUpdate = newTime;
     }
 
+    //aggiorna metriche quando arrriiva creation
     public void onCreation(double now) {
         updateAreas(now);
         numCopy++;
     }
 
+    // aggiorna metriche quando arriva DESTROY
     public void onDestroy(double now) {
         updateAreas(now);
         numCopy--;

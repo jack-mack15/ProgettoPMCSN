@@ -54,6 +54,7 @@ public class BLoadBalancer {
         numOfDestroy = 0;
     }
 
+    //metodo che elimina una copia di B. Se la copia è B_0 non viene eliminata
     public void removeCopy(String node) {
         if (!Objects.equals(node, "B_0")) {
             for (NodeB temp: bNodes) {
@@ -72,6 +73,7 @@ public class BLoadBalancer {
         }
     }
 
+    //metodo che si occupa di creare una copia del server B
     public void createCopy(String node) {
         currentIndex++;
         String newName = "B_"+currentIndex;
@@ -89,17 +91,19 @@ public class BLoadBalancer {
         CopyEstimator.getInstance().onCreation(scheduler.getClock());
     }
 
+    //metodo che si occupa di gestire l'evento arrivo. Seleziona la copia di B che deve riceverlo.
+    //se necessario crea una nuova copia
     public void handleArrival(Event e){
         //recupero la copia che deve ricevere l'arrivo
         NodeB node = selectNode(e);
         seenJobs++;
         seenForBatch++;
         if (node == null && !uponCreate) {
-            //in questo caso il job viene scartato
+            //in questo caso il job viene scartato. solo in fase di verifica
             descardedJobs++;
             descardedForBatch++;
-            //todo aggiornare pop sistema
             scheduler.incrementCurNumOfJobs();
+            Statistics.getInstance().finalizeDroppedJob(e);
             return;
         } else if (uponCreate) {
             uponCreate = false;
@@ -139,8 +143,6 @@ public class BLoadBalancer {
         //se arrivo qua non ci sta nessuno libero
         if (bNodes.size() >= maxBcopies) {
             //drop del job appena arrivato
-            scheduler.incrementCurNumOfJobs();
-            Statistics.getInstance().finalizeDroppedJob(event);
             return null;
         }
         scheduleCreation(event);
@@ -161,8 +163,9 @@ public class BLoadBalancer {
     }
 
 
-    //selectNode meno pieno
-    private NodeB selectNode3(Event event) {
+    //selectNode meno pieno, non usato
+    //todo remove
+    private NodeB selectBestNode(Event event) {
         int limite = 3;
 
         //printSituation();
@@ -195,8 +198,9 @@ public class BLoadBalancer {
         }
     }
 
-    //selectNode round robin
-    private NodeB selectNode2(Event event) {
+    //selectNode round robin, non usato
+    //todo remove
+    private NodeB selectRRNode(Event event) {
         int limite = 5;
 
         //printSituation();
@@ -268,31 +272,21 @@ public class BLoadBalancer {
         }
     }
 
+
+    //metodo che si occupa di schedulare l'evento CREATION
     private void scheduleCreation(Event event) {
         Event createEvent = new Event(scheduler.getClock(), EventType.CREATE,"B",event.getClassId(), event.getIdRequest());
         scheduler.addEvent(createEvent);
         pendingEvents.add(event);
     }
 
-    private void printSituation() {
-        for (NodeB node: bNodes) {
-            //node.debugPrint();
-        }
-        out.println("\n\n");
-    }
 
+    //metodo che ritorna il numero di job scartati
     public long getDescardedJobs() {
-        out.println("NODE B: accepted jobs are "+acceptedJobs);
-        out.println("NODE B: seen jobs are "+seenJobs);
         return descardedJobs;
     }
 
-    public int getNumbers() {
-        out.println("\n\nLOAD BALANCER: numbers of creation: "+numOfCreate);
-        out.println("LOAD BALANCER: number of destroy: "+numOfDestroy+"\n\n");
-        return bNodes.size();
-    }
-
+    //metodo che ritorna il numero di copie attuali
     public int getCurrNumOfCopy() {
         return bNodes.size();
     }

@@ -3,6 +3,7 @@ package pmcsn.centers;
 import pmcsn.controllers.NextEventScheduler;
 import pmcsn.events.Event;
 
+//classe che mantiene la struttura della rete e si occupa di mandare gli eventi ai server giusti
 public class System {
     private AbstractNode serverA;
     private AbstractNode serverP;
@@ -17,15 +18,18 @@ public class System {
         this.bLoadBalancer = new BLoadBalancer(scheduler,scaling,maxNumOfBCopies,maxJobsForCopy,simType);
     }
 
+    //se arriva un evento CREATION
     public void handleCopyCreation(Event e) {
         bLoadBalancer.createCopy(e.getNode());
     }
 
+    //se arriva un evento DESTROY
     public void handleCopyDestroy(Event event) {
         bLoadBalancer.removeCopy(event.getNode());
 
     }
 
+    //funzione di ausilio
     private AbstractNode getNode(String nodeName) {
         if (nodeName == "A") {
             return serverA;
@@ -36,6 +40,7 @@ public class System {
         }
     }
 
+    //se arriva un evento ARRIVAL sceglie il server giusto
     public void handleArrival(Event e, String node) {
         AbstractNode target = getNode(node);
         if (target == null) {
@@ -45,6 +50,7 @@ public class System {
         }
     }
 
+    //come handleArrival ma per eventi departure
     public void handleDeparture(Event e, String node) {
         AbstractNode target = getNode(node);
         if (target == null) {
@@ -54,11 +60,12 @@ public class System {
         }
     }
 
+    //funzione che ottiene e mi ritorna i job scartati da B
     public long getBDescardedJobs() {
         return bLoadBalancer.getDescardedJobs();
     }
 
     public int getCopiesNum() {
-        return bLoadBalancer.getNumbers();
+        return bLoadBalancer.getCurrNumOfCopy();
     }
 }

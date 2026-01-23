@@ -19,6 +19,14 @@ public class Event implements Comparable<Event> {
         this.idRequest = idRequest;
     }
 
+    //metodo che implementa l'ordinamento automatico della priorityqueue
+    //normalmente il grosso if non servirebbe ma per essere sicuri che non ci siano problemi con eventi
+    //con stesso istante di arrivo, è stato implementata ulteriore logica per ordinamento (il grosso if)
+    //other è l'elemento già presente nella priority queue
+    //this è il nuovo elemento da inserire nella priority queue
+    // se il valore di ritorno è -1, inserisco this prima di other
+    // con valore maggiore di 0, inserisco this dopo other
+    // con 0, l'inserimento può essere casuale
     @Override
     public int compareTo(Event other){
         //other è l'elemento già nella lista degli eventi
@@ -41,27 +49,6 @@ public class Event implements Comparable<Event> {
             } else {
                 return 1;
             }
-            /*if (newT == EventType.SAMPLING || oldT == EventType.SAMPLING) {
-                //mi interessa poco
-                return 0;
-            } else if (this.getNode() == "P" || other.getNode() == "P") {
-                //non mi interessa
-                return 0;
-            } else if (newT == EventType.ARRIVAL && other.getNode() == "B" && oldT == EventType.DEPARTURE && this.getNode() == "B") {
-                //arrivo in b in contemporanea con departure b
-                //deve essere in lista prima Departure di B e poi arrivo per B
-                return 1;
-            } else if (oldT == EventType.ARRIVAL && other.getNode() == "B" && newT == EventType.DEPARTURE && this.getNode() == "B") {
-                //arriva una nuova departure per B e la sto confrontando con un arrivo per B già in lista
-                //nuova departure deve essere prima
-                return -1;
-            } else if (newT == EventType.DESTROY || oldT == EventType.CREATE) {
-                //nuovi eventi destroy o create, devono essere processati subito
-                return 1;
-            } else if (oldT == EventType.DESTROY || newT == EventType.CREATE) {
-                //evento destroy e create già in lista hanno priorità
-                return -1;
-            }*/
         }
         return Double.compare(this.time, other.time);
     }

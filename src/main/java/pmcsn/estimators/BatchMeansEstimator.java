@@ -4,6 +4,8 @@ import pmcsn.centers.BLoadBalancer;
 import pmcsn.entities.Job;
 import pmcsn.events.Event;
 
+//classe che contiene le istanze di BatchClass
+
 public class BatchMeansEstimator {
 
     private static final BatchMeansEstimator istanza = new BatchMeansEstimator();
@@ -42,6 +44,7 @@ public class BatchMeansEstimator {
         batchSystem.resetBatch(newTime);
     }
 
+    //utile solo in fase verifica SCALING
     public void setBatchForLoss(BLoadBalancer bLoadBalancer) {
         getBatch("B").setLossInfo(bLoadBalancer);
     }
@@ -60,11 +63,8 @@ public class BatchMeansEstimator {
         }
     }
 
+    //metodo utile solo inf ase di SCALING verifica
     public void dropJob(Event event) {
         batchSystem.dropJob(event.getIdRequest());
     }
-    public void outputStatistics() {
-
-    }
-
 }

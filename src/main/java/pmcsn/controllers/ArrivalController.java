@@ -48,6 +48,7 @@ public class ArrivalController {
         }
     }
 
+    //utile per debug
     public long getNumArrivals() {
         return numArrivals;
     }

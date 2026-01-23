@@ -69,12 +69,6 @@ public class Job implements Comparable<Job>{
     public double getArrivalTime() {
         return arrivalTime;
     }
-    public void setJobClass(int jobClass) {
-        this.jobClass = jobClass;
-    }
-    public void setRemainServiceTime(double remainServiceTime) {
-        this.remainServiceTime = remainServiceTime;
-    }
     public String getNode() {
         return node;
     }

@@ -7,8 +7,6 @@ import pmcsn.estimators.Statistics;
 import pmcsn.events.Event;
 import pmcsn.events.EventType;
 import pmcsn.rngs.Rngs;
-
-import java.util.ArrayList;
 import java.util.PriorityQueue;
 
 import static java.lang.System.out;
@@ -79,13 +77,6 @@ public class NextEventScheduler {
 
     //metodo che aggiunge un avento alla coda globale
     public void addEvent(Event e) {
-        /*if (e.getType() == EventType.CREATE) {
-            system.handleCopyCreation(e);
-            return;
-        } else if (e.getType() == EventType.DESTROY) {
-            system.handleCopyDestroy(e);
-            return;
-        }*/
         eventList.add(e);
     }
 
@@ -166,6 +157,7 @@ public class NextEventScheduler {
         PopulationEstimator.getInstance().setFinishTime(clock);
         CopyEstimator.getInstance().setFinishTime(clock);
         system.getCopiesNum();
+        //stampe interessanti per debug
         out.println("media copie di B:"+CopyEstimator.getInstance().getNumCopyMean());
         out.println("ci sono stati "+arrivalController.getNumArrivals()+" jobs");
         out.println("final clock is "+clock);
@@ -188,6 +180,7 @@ public class NextEventScheduler {
         return null;
     }
 
+    //stessa cosa di prima ma rimuove eventi DEStroy senza ritornarlo
     public void removeDestroyEvent(String nodeName) {
         //il check viene già fatto dal nodo interessato
         PriorityQueue<Event> temp = new PriorityQueue<>(eventList);
@@ -200,6 +193,7 @@ public class NextEventScheduler {
         }
     }
 
+    //metodi di set e get utili
     public void setSamplingPeriodAndStart(double period,double start) {
         this.samplingStart = start;
         this.samplingPeriod = period;

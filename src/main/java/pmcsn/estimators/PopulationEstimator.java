@@ -2,6 +2,9 @@ package pmcsn.estimators;
 
 import pmcsn.entities.Job;
 
+//classe che mantiene istanze di Population
+//due istanze per componente
+
 public class PopulationEstimator {
 
     private static final PopulationEstimator istance = new PopulationEstimator();
@@ -13,10 +16,6 @@ public class PopulationEstimator {
 
     private Population[] batches = new Population[4];
     private Population[] stats = new Population[4];
-    /*private Population popA = new Population();
-    private Population popB = new Population();
-    private Population popP = new Population();
-    private Population popSystem = new Population();*/
 
     private double finishTime = 0.0;
 

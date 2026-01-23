@@ -5,6 +5,8 @@ import pmcsn.files.OutputFileGenerator;
 
 import static java.lang.System.out;
 
+//classe per avere statistiche temporali e non con batch means
+
 public class ClassicStatistics {
 
     private Estimator responseTimeEstimator = new Estimator();
@@ -31,10 +33,12 @@ public class ClassicStatistics {
         }
     }
 
+    //utile solo per fase verifica SCALING
     public void dropJob(long id) {
         globalEstimator.onRemove(id);
     }
 
+    //ad ogni SAMPLING event, ottengo medie e scrivo su file transitorio
     public void logSampling(double time, long seed) {
 
         //response time
@@ -104,6 +108,7 @@ public class ClassicStatistics {
         globalEstimator = new GlobalEstimator();
     }
 
+    //utile per debug
     public void printStatistics(double finish) {
 
         out.println("NODO A: STATISTICHE--------------------");

@@ -6,15 +6,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-
+//classe che contiene i metodi per calcolare batch means di una run a partire da un file.
 public class BatchMeansCalculator {
 
     private static final double T_SCORE = 1.97196;
     private static final double SQRT_N = 14.142135; // radice quadrata di 200
     private static final String delimiter = ",";
-    private static String inputCsvPath = "Batch.csv";
-    private static String outputCsvPath = "BatchResults.csv";
-    private int maxNumCopy;
+    private static String inputCsvPath = "Batch.csv"; //file contenente i risultati dei singoli batch
+    private static String outputCsvPath = "BatchResults.csv"; //file in cui sono scritti i risultati delle runs.
+
 
 
     public void setFile() {
@@ -32,7 +32,6 @@ public class BatchMeansCalculator {
 
     public void setFileCopy(int maxNumCopy) {
         try {
-            this.maxNumCopy = maxNumCopy;
             //true serve per append dei dati
             FileWriter fw = new FileWriter("CopyMeans.csv", false);
             PrintWriter copyB = new PrintWriter(fw);
@@ -44,6 +43,8 @@ public class BatchMeansCalculator {
         }
     }
 
+    //per riusare i metodi questo temporaneamente cambia i file da scrivere e poi li ripristina.
+    //serve per i grafici con numero medio copie
     public void calculateCopy(int maxNumCopy) {
         String tempIn = inputCsvPath;
         String tempOut = outputCsvPath;
@@ -56,13 +57,15 @@ public class BatchMeansCalculator {
         outputCsvPath = tempOut;
     }
 
+    //metodo che prende il file di input in cui sono riportati tutti i dati dei batch.
+    //crea una mega lista per metrica e componente
     public void calculate(double lambda) {
 
         // Struttura dati per raggruppare i valori:
         // Map<Componente, Map<Metrica, ListaDiValoriBatch>>
         // Uso TreeMap per avere l'output ordinato alfabeticamente per componente e metrica
         Map<String, Map<String, List<Double>>> dataStore = new TreeMap<>();
-        
+
         try (BufferedReader br = new BufferedReader(new FileReader(inputCsvPath))) {
             String line;
             // ricordati che devi saltare l'intestazione
@@ -153,7 +156,7 @@ public class BatchMeansCalculator {
     }
 
 
-    //calcola la media totale
+    //calcola la media totale della run
     public static double calculateMean(List<Double> values) {
         if (values == null || values.isEmpty()) return 0.0;
         double sum = 0;

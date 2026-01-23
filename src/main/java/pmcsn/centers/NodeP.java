@@ -31,6 +31,7 @@ public class NodeP extends AbstractNode{
         lastUpdate = 0.0;
     }
 
+    //gestore arrivi
     @Override
     public void handleArrival(Event e) {
 
@@ -63,6 +64,7 @@ public class NodeP extends AbstractNode{
 
     }
 
+    //gestore delle partenze
     @Override
     public void handleDeparture(Event e) {
 
@@ -82,6 +84,8 @@ public class NodeP extends AbstractNode{
         //out.println("\n\n");
     }
 
+    //metodo che si occupa di verificare se ci sono job terminati e in caso inviarli al prossimo server (sempre
+    //tramite evento)
     //il valore di ritorno indica se è stato schedulato la prossima departure
     private boolean checkTerminateJobAndDeparture() {
 
@@ -108,6 +112,7 @@ public class NodeP extends AbstractNode{
         return false;
     }
 
+    //metodo che schedula nuova partenza per me stesso
     private void scheduleNextDeparture() {
         //ordino i job in servizio in base al tempo di esecuzioe rimanente
         sortJobsInService();
@@ -130,6 +135,7 @@ public class NodeP extends AbstractNode{
         scheduler.addEvent(departureForThis);
     }
 
+    //metodo che invia job
     private void sendJobToServer(Job j) {
         Event e = new Event(scheduler.getClock(), EventType.ARRIVAL,"A",2,j.getId());
         scheduler.addEvent(e);

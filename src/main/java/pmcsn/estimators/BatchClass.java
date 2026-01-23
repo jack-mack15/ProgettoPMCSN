@@ -10,6 +10,8 @@ import java.util.List;
 
 import static java.lang.System.out;
 
+//classe che implementa logica gestione del batch aggiornamento e scrittura su file
+
 public class BatchClass {
     //parametro b delle slide
     private int size;
@@ -21,6 +23,8 @@ public class BatchClass {
     private int cursor;
     //nome del batch, associato ai nodi del sistema
     private String component;
+
+
     //estimators
     private Estimator responseTimeEstimator;
     private Estimator waitTimeEstimator;
@@ -29,15 +33,18 @@ public class BatchClass {
 
     //variabile che indica se il batch è del sistema
     private boolean isSystem;
+    //variabile che indica se ho modello SCALING
     private boolean isScaling;
+    //per avere numero di copie sono costretto ad aggiungere loadbalancer qui
     private BLoadBalancer bLoad = null;
+    //lista di ploss (verifica modello SCALING) di ogni batch di b
     private List<Double> batchesPLoss = new ArrayList<>();
 
     public BatchClass(int size, boolean isSystem, String name, int batchNum) {
         this.size = size;
         if(name == "A") {
-            //this.size = 3*size;
-            this.size = (int) (size * 2.9635);
+            //A riceve il triplo di job, dunque triplico la size del batch A.
+            this.size = 3*size;
         }
         batchIndex = 0;
         cursor = 0;
@@ -53,6 +60,9 @@ public class BatchClass {
         populationEstimator = PopulationEstimator.getInstance();
     }
 
+    //metodo che aggiorna gli estimator del batch
+    //questo metodo viene invocato da uno dei server (o globalmente) e quindi aggiorna solo
+    //gli estimator di quel server
     public void updateBatch(Job job) {
         if (isSystem) {
             updateGlobalBatch(job);
@@ -61,6 +71,7 @@ public class BatchClass {
         update(job);
         cursor++;
         if (cursor >= size) {
+            //se entro ho complettato un batch, quindi stampo medie e resetto batch
             logSampling(job.getCompleteTime());
             batchIndex++;
             resetBatch(job.getCompleteTime());
@@ -68,12 +79,15 @@ public class BatchClass {
         }
     }
 
+
+    //metodo utile solo in fase verifica SCALING
     public void dropJob(long id) {
         if (isSystem) {
             globalEstimator.onRemove(id);
         }
     }
 
+    //metodo che calcola i tempi del job appena completato
     private void update(Job job) {
         //tempi significativi del job
         double arrivalTime = job.getArrivalTime();
@@ -87,6 +101,7 @@ public class BatchClass {
     }
 
     //metodo per aggiornare il batch globale (quello del sistema)
+    //invocato solo dal batch system
     private void updateGlobalBatch(Job job) {
         if (job.getJobClass() == -1) {
             //arrivo, solo salvataggio del job
@@ -105,6 +120,7 @@ public class BatchClass {
         }
     }
 
+    //metodo per resettare il batch durante batch means
     public void resetBatch(double newTime) {
         if(component == "B" && bLoad != null) {
             int currCopies = bLoad.getCurrNumOfCopy();
@@ -123,13 +139,16 @@ public class BatchClass {
         }
     }
 
+    //metodo utile solo pr verifica SCALING
     public void setLossInfo(BLoadBalancer bLoadBalancer) {
         isScaling = true;
         this.bLoad = bLoadBalancer;
     }
 
+    //metodo che scrive i valori del batch una volta completato
     public void logSampling(double time) {
         if (component == "B" && isScaling && bLoad != null) {
+            //parte utile solo in fase di verifica o per numero medio copie
             long discarded = bLoad.getAndResetDiscardedJobs();
             long seen = bLoad.getAndResetSeenJobs();
             double ploss = (double)discarded/seen;

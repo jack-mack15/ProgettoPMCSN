@@ -44,12 +44,6 @@ public class Population {
         }
     }
 
-    private void checkBusyTimeCorrect(double now) {
-        double elaps = now - startTime;
-        out.println("check sul busy time");
-        out.println("tempo totale: "+elaps);
-        out.println("verifica: "+(busyTime+idleTime)+"\n\n");
-    }
 
     public void jobArrival(double now) {
         updateBusyTimeOnArrival(now);
@@ -79,6 +73,7 @@ public class Population {
         return area / observationTime;
     }
 
+    //utile per debug
     public void debug(double time) {
         out.println(numJobs);
         out.println(nodeDeparture);
@@ -115,6 +110,7 @@ public class Population {
         return getNodeDeparture() / elaps;
     }
 
+    //reset per fine singolo batch
     public void resetPopulation(double newStart) {
         busyTime = 0.0;
         idleTime = 0.0;
@@ -125,6 +121,7 @@ public class Population {
         lastUpdate = newStart;
     }
 
+    //reset per fine run o fine batch means
     public void hardReset() {
         busyTime = 0.0;
         idleTime = 0.0;

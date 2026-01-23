@@ -30,6 +30,7 @@ public class NodeA extends AbstractNode{
         lastUpdate = 0.0;
     }
 
+    //gestore evento arrivo
     @Override
     public void handleArrival(Event e) {
         int newClassId = e.getClassId();
@@ -80,6 +81,7 @@ public class NodeA extends AbstractNode{
         //out.println("\n\n");
     }
 
+    //gestore evento departure
     @Override
     public void handleDeparture(Event e) {
         //out.println("NODO A: handling departure ad istante: "+e.getTime());
@@ -199,6 +201,8 @@ public class NodeA extends AbstractNode{
     private void sortJobsInService() {
         jobsInService.sort(Comparator.comparingDouble(Job::getRemainServiceTime));
     }
+
+    // metodo che ritorna il primo job a terminare. job nel server
     private Job getFirstToComplete() {
         if (jobsInService.isEmpty()) {
             return null;
