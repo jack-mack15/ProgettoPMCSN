@@ -2,7 +2,9 @@ package pmcsn.centers;
 
 import pmcsn.controllers.NextEventScheduler;
 import pmcsn.entities.Job;
+import pmcsn.estimators.BatchMeansEstimator;
 import pmcsn.estimators.CopyEstimator;
+import pmcsn.estimators.Statistics;
 import pmcsn.events.Event;
 import pmcsn.events.EventType;
 
@@ -19,15 +21,18 @@ public class BLoadBalancer {
     private int numOfCreate;
     private int currentIndex;
     private long descardedJobs;
+    private long descardedForBatch;
     private long acceptedJobs;
+    private long seenForBatch;
     private long seenJobs;
     private int maxJobsForCopy;
     private ArrayList<Event> pendingEvents;
     private boolean isScaling;
     private int lastSelected;
     private boolean hasRecentDestroy;
+    private boolean uponCreate;
 
-    public BLoadBalancer(NextEventScheduler scheduler, boolean isScaling, int maxBcopies, int maxJobsForCopy) {
+    public BLoadBalancer(NextEventScheduler scheduler, boolean isScaling, int maxBcopies, int maxJobsForCopy, int simType) {
         this.scheduler = scheduler;
         this.currentIndex = 0;
         this.isScaling = isScaling;
@@ -42,7 +47,9 @@ public class BLoadBalancer {
         this.maxBcopies = maxBcopies;
 
         bNodes.add(new NodeB(scheduler,"B_0"));
-
+        if (isScaling && simType == 2) {
+            BatchMeansEstimator.getInstance().setBatchForLoss(this);
+        }
         numOfCreate = 0;
         numOfDestroy = 0;
     }
@@ -86,15 +93,19 @@ public class BLoadBalancer {
         //recupero la copia che deve ricevere l'arrivo
         NodeB node = selectNode(e);
         seenJobs++;
-        if (node == null) {
+        seenForBatch++;
+        if (node == null && !uponCreate) {
             //in questo caso il job viene scartato
             descardedJobs++;
+            descardedForBatch++;
             //todo aggiornare pop sistema
             scheduler.incrementCurNumOfJobs();
             return;
+        } else if (uponCreate) {
+            uponCreate = false;
+            return;
         }
         acceptedJobs++;
-
         node.handleArrival(e);
     }
 
@@ -128,12 +139,25 @@ public class BLoadBalancer {
         //se arrivo qua non ci sta nessuno libero
         if (bNodes.size() >= maxBcopies) {
             //drop del job appena arrivato
+            scheduler.incrementCurNumOfJobs();
+            Statistics.getInstance().finalizeDroppedJob(event);
             return null;
         }
-        pendingEvents.add(event);
-        createCopy("B");
-        //scheduleCreation(event);
+        scheduleCreation(event);
+        uponCreate = true;
         return null;
+    }
+
+    public long getAndResetDiscardedJobs() {
+        long temp = descardedForBatch;
+        descardedForBatch = 0;
+        return temp;
+    }
+
+    public long getAndResetSeenJobs() {
+        long temp = seenForBatch;
+        seenForBatch = 0;
+        return temp;
     }
 
 
@@ -266,6 +290,10 @@ public class BLoadBalancer {
     public int getNumbers() {
         out.println("\n\nLOAD BALANCER: numbers of creation: "+numOfCreate);
         out.println("LOAD BALANCER: number of destroy: "+numOfDestroy+"\n\n");
+        return bNodes.size();
+    }
+
+    public int getCurrNumOfCopy() {
         return bNodes.size();
     }
 

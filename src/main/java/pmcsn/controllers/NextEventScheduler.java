@@ -8,6 +8,7 @@ import pmcsn.events.Event;
 import pmcsn.events.EventType;
 import pmcsn.rngs.Rngs;
 
+import java.util.ArrayList;
 import java.util.PriorityQueue;
 
 import static java.lang.System.out;
@@ -72,12 +73,19 @@ public class NextEventScheduler {
         this.arrivalController = new ArrivalController(arrivalRate,this);
     }
     //init dell'istanza del sistema, mantiene traccia dei nodi del sistema
-    public void initSystem(boolean isScaling, boolean isF2A, int maxNumOfBCopies,int maxJobsForCopy) {
-        this.system = new System(this,isScaling,isF2A,maxNumOfBCopies,maxJobsForCopy);
+    public void initSystem(boolean isScaling, boolean isF2A, int maxNumOfBCopies,int maxJobsForCopy, int simType) {
+        this.system = new System(this,isScaling,isF2A,maxNumOfBCopies,maxJobsForCopy,simType);
     }
 
     //metodo che aggiunge un avento alla coda globale
     public void addEvent(Event e) {
+        /*if (e.getType() == EventType.CREATE) {
+            system.handleCopyCreation(e);
+            return;
+        } else if (e.getType() == EventType.DESTROY) {
+            system.handleCopyDestroy(e);
+            return;
+        }*/
         eventList.add(e);
     }
 
@@ -110,7 +118,7 @@ public class NextEventScheduler {
 
 
         //fase di simulazione
-        while (!eventList.isEmpty() && curNumOfJobs < maxNumOfJobs && clock < maxTime) {
+        while (!eventList.isEmpty() && curNumOfJobs < maxNumOfJobs && clock <= maxTime) {
             e = getNext();
             if (e == null) {
                 //la coda di eventi è vuota, errore
@@ -157,6 +165,7 @@ public class NextEventScheduler {
 
         PopulationEstimator.getInstance().setFinishTime(clock);
         CopyEstimator.getInstance().setFinishTime(clock);
+        system.getCopiesNum();
         out.println("media copie di B:"+CopyEstimator.getInstance().getNumCopyMean());
         out.println("ci sono stati "+arrivalController.getNumArrivals()+" jobs");
         out.println("final clock is "+clock);

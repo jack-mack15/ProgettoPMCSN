@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 public class OutputFileGenerator {
     private PrintWriter stats;
     private PrintWriter batch;
+    private PrintWriter copy;
     private int type;
     private static final OutputFileGenerator istanza = new OutputFileGenerator();
 
@@ -39,6 +40,20 @@ public class OutputFileGenerator {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void setFileCopy() {
+        try {
+            FileWriter fw = new FileWriter("CopyBatch.csv",false);
+            copy = new PrintWriter(fw);
+            copy.println("Time,Metric,Value,Batch,Component");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void logCopy(double time, double value, int batch) {
+        copy.printf(java.util.Locale.US, "%.6f,%s,%.6f,%d,%s%n", time, "CopyNum", value, batch, "B");
     }
 
     public void logRecordACS(double responseTime) {
@@ -91,6 +106,10 @@ public class OutputFileGenerator {
             batch.flush();
             batch.close();
         }
+        if (copy != null) {
+            copy.flush();
+            copy.close();
+        }
     }
 
     public void flushFiles() {
@@ -100,8 +119,24 @@ public class OutputFileGenerator {
         if (batch != null) {
             batch.flush();
         }
+        if (copy != null) {
+            copy.flush();
+        }
     }
 
+    public void deleteCopy() {
+        File fileDaEliminare = new File("CopyBatch.csv"); // Usa la stessa stringa 'filename' usata nel FileWriter
+
+        if (fileDaEliminare.exists()) {
+            boolean cancellato = fileDaEliminare.delete();
+
+            if (cancellato) {
+                System.out.println("File eliminato con successo.");
+            } else {
+                System.err.println("Impossibile eliminare il file. Potrebbe essere ancora aperto o mancano i permessi.");
+            }
+        }
+    }
     public void deleteBatch() {
         File fileDaEliminare = new File("Batch.csv"); // Usa la stessa stringa 'filename' usata nel FileWriter
 

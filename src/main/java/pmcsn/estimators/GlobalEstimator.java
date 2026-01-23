@@ -44,7 +44,7 @@ public class GlobalEstimator {
                 //i due job sono differenti in java ma concettualmente stesso job
                 double responseTime = job.getCompleteTime() - j.getArrivalTime();
                 if (responseTime < 0.0) {
-                    responseTime = 1.0;
+                    responseTime = 0.1;
                 }
                 responseTimeEstimator.addData(responseTime);
                 //OutputFileGenerator.getInstance().logRecordACS(responseTime);
@@ -54,6 +54,13 @@ public class GlobalEstimator {
         }
     }
 
+    public void onRemove(long id){
+        for (Job job: list) {
+            if (id == job.getId()) {
+                list.remove(job);
+            }
+        }
+    }
     public void resetGlobalEstimator() {
         responseTimeEstimator = new Welford();
     }

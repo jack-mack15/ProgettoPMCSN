@@ -10,11 +10,11 @@ public class System {
 
     private NextEventScheduler scheduler;
 
-    public System(NextEventScheduler scheduler, boolean scaling, boolean isF2A, int maxNumOfBCopies, int maxJobsForCopy) {
+    public System(NextEventScheduler scheduler, boolean scaling, boolean isF2A, int maxNumOfBCopies, int maxJobsForCopy, int simType) {
         this.scheduler = scheduler;
         this.serverA = new NodeA(scheduler,isF2A);
         this.serverP = new NodeP(scheduler,isF2A);
-        this.bLoadBalancer = new BLoadBalancer(scheduler,scaling,maxNumOfBCopies,maxJobsForCopy);
+        this.bLoadBalancer = new BLoadBalancer(scheduler,scaling,maxNumOfBCopies,maxJobsForCopy,simType);
     }
 
     public void handleCopyCreation(Event e) {

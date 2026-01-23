@@ -31,6 +31,10 @@ public class ClassicStatistics {
         }
     }
 
+    public void dropJob(long id) {
+        globalEstimator.onRemove(id);
+    }
+
     public void logSampling(double time, long seed) {
 
         //response time

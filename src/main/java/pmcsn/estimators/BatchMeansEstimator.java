@@ -1,7 +1,8 @@
 package pmcsn.estimators;
 
+import pmcsn.centers.BLoadBalancer;
 import pmcsn.entities.Job;
-import pmcsn.files.OutputFileGenerator;
+import pmcsn.events.Event;
 
 public class BatchMeansEstimator {
 
@@ -41,6 +42,10 @@ public class BatchMeansEstimator {
         batchSystem.resetBatch(newTime);
     }
 
+    public void setBatchForLoss(BLoadBalancer bLoadBalancer) {
+        getBatch("B").setLossInfo(bLoadBalancer);
+    }
+
     //metodo ausiliario per ottenere il batchclass corretto
     public BatchClass getBatch(String node) {
         switch (node) {
@@ -55,6 +60,9 @@ public class BatchMeansEstimator {
         }
     }
 
+    public void dropJob(Event event) {
+        batchSystem.dropJob(event.getIdRequest());
+    }
     public void outputStatistics() {
 
     }

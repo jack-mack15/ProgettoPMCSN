@@ -1,7 +1,12 @@
 package pmcsn.estimators;
 
+import pmcsn.centers.BLoadBalancer;
+import pmcsn.controllers.BatchMeansCalculator;
 import pmcsn.entities.Job;
 import pmcsn.files.OutputFileGenerator;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static java.lang.System.out;
 
@@ -24,11 +29,15 @@ public class BatchClass {
 
     //variabile che indica se il batch è del sistema
     private boolean isSystem;
+    private boolean isScaling;
+    private BLoadBalancer bLoad = null;
+    private List<Double> batchesPLoss = new ArrayList<>();
 
     public BatchClass(int size, boolean isSystem, String name, int batchNum) {
         this.size = size;
         if(name == "A") {
-            this.size = 3*size;
+            //this.size = 3*size;
+            this.size = (int) (size * 2.9635);
         }
         batchIndex = 0;
         cursor = 0;
@@ -56,6 +65,12 @@ public class BatchClass {
             batchIndex++;
             resetBatch(job.getCompleteTime());
             cursor = 0;
+        }
+    }
+
+    public void dropJob(long id) {
+        if (isSystem) {
+            globalEstimator.onRemove(id);
         }
     }
 
@@ -91,6 +106,11 @@ public class BatchClass {
     }
 
     public void resetBatch(double newTime) {
+        if(component == "B" && bLoad != null) {
+            int currCopies = bLoad.getCurrNumOfCopy();
+            CopyEstimator.getInstance().resetForBatch(currCopies, newTime);
+        }
+
         populationEstimator.resetPopulation(component,newTime,true);
         if (isSystem) {
             globalEstimator.resetGlobalEstimator();
@@ -103,7 +123,30 @@ public class BatchClass {
         }
     }
 
+    public void setLossInfo(BLoadBalancer bLoadBalancer) {
+        isScaling = true;
+        this.bLoad = bLoadBalancer;
+    }
+
     public void logSampling(double time) {
+        if (component == "B" && isScaling && bLoad != null) {
+            long discarded = bLoad.getAndResetDiscardedJobs();
+            long seen = bLoad.getAndResetSeenJobs();
+            double ploss = (double)discarded/seen;
+            batchesPLoss.add(ploss);
+
+            if ((batchIndex) == (batchNum-1)) {
+                double batchMean = BatchMeansCalculator.calculateMean(batchesPLoss);
+                double batchStd = BatchMeansCalculator.calculateSampleStdDev(batchesPLoss,batchMean);
+
+                out.println("\n\nPLOSS VALUE FOR BATCH MEANS:::::::::::::::::::::::::::::::");
+                out.println("Mean: "+batchMean);
+                out.println("STD: "+batchStd+"\n\n");
+            }
+            CopyEstimator.getInstance().setFinishTime(time);
+            double copies = CopyEstimator.getInstance().getNumCopyMean();
+            OutputFileGenerator.getInstance().logCopy(time,copies,batchIndex);
+        }
         //recupero metriche e logging
         if(isSystem) {
             //in caso sia batch del sistema

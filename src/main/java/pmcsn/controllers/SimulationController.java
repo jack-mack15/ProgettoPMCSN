@@ -6,9 +6,6 @@ import pmcsn.estimators.Statistics;
 import pmcsn.files.BatchResultsFileGenerator;
 import pmcsn.files.OutputFileGenerator;
 
-import java.util.Scanner;
-
-import static java.lang.System.exit;
 import static java.lang.System.out;
 
 public class SimulationController {
@@ -16,28 +13,33 @@ public class SimulationController {
     public static void main(String[] args) {
 
         //PARAMETRI DEL SISTEMA
-        boolean isScaling = true;       //indica se il nodo B esegue scaling oppure no
+        boolean isScaling = false;       //indica se il nodo B esegue scaling oppure no
         boolean isF2A = true;
-        int maxBcopies = 2;//Integer.MAX_VALUE;
-        int maxJobsStart = 3;
+        int maxBcopies = Integer.MAX_VALUE;
+        int maxJobsStart = 7;
 
         //PARAMETRI DELLE RUN
-        int numRuns = 1;//numero perfetto da 0.45 a 1.20
+        int numRuns = 15;//numero perfetto da 0.45 a 1.20
         int batchSize = 4096;
-        int numBatches = 200; //valore usato era 244
-        int numJobs = 819200;//409600;
-        double maxTime = 0.0;
+        int numBatches = 200;
+        int numJobs = 819200; //819200;//409600; //1000000 per scaling con perdita
+        double maxTime = 0.0; //172800.0; //172800.0; //172800 per avere 48 h
         long initialSeed = 123456789L;
+        boolean writeCopy = true;
+
+        //seed 0 per transitorio (9*6 utilizzati)
+        //seed 60 per ploss (solo 6 utilizzati)
+        //seed 72 per esperimenti (14*6 utilizzati)
         int firstIndexSeed = 72;//88;//72;
-        double lambda = 1.2;
+        double lambda = 0.45;
         //0 per transitorio
         //1 per batch means
         //0 per acs ma varname == ""
         //2 per le simulations di scaling
-        int simulationType = 2;
+        int simulationType = 1;
         double samplingPeriod = 0.0;
-        double samplingStart = 2500.0;
-
+        double samplingStart = 250.0;
+        boolean resetSeed = false;
         boolean discard = true;
 
         //se servisse
@@ -53,10 +55,16 @@ public class SimulationController {
         if (simulationType == 1 || simulationType == 2) {
             bmControl.setFile();
         }
+        if (writeCopy) {
+            bmControl.setFileCopy(maxJobsStart);
+        }
 
 
         //csv generator
         OutputFileGenerator csvTransitorio = OutputFileGenerator.getInstance();
+         if (simulationType == 0) {
+            csvTransitorio.setFile("transitorio.csv",simulationType);
+        }
         //csvTransitorio.setFile("Batch.csv",simulationType);
         //csvTransitorio.setFile("ACS.txt",simulationType);
 
@@ -65,8 +73,9 @@ public class SimulationController {
 
             if(simulationType == 1 || simulationType == 2) {
                 csvTransitorio.setFile("Batch.csv", simulationType);
-            } else {
-                csvTransitorio.setFile("transitorio.csv",simulationType);
+            }
+            if (writeCopy) {
+                OutputFileGenerator.getInstance().setFileCopy();
             }
 
             //init dello scheduler
@@ -78,18 +87,17 @@ public class SimulationController {
                 BatchMeansEstimator.getInstance().setBatches(batchSize,numBatches);
                 lambda += 0.05;
                 scheduler.initArrival(1.0/lambda);
-                scheduler.initSystem(isScaling,isF2A,maxBcopies,0);
+                scheduler.initSystem(isScaling,isF2A,maxBcopies,0,simulationType);
             } else if (simulationType == 2) {
                 //per scaling
-                out.println("lambda is "+lambda);
                 BatchMeansEstimator.getInstance().setBatches(batchSize,numBatches);
                 scheduler.initArrival(1.0/lambda);
-                scheduler.initSystem(isScaling,isF2A,maxBcopies,maxJobsStart+i);
+                scheduler.initSystem(isScaling,isF2A,maxBcopies,maxJobsStart+i,simulationType);
                 out.println("AVVIO RUN SCALING CON c="+(maxJobsStart+i));
             }else {
                 //base
                 scheduler.initArrival(1.0 / lambda);
-                scheduler.initSystem(isScaling,isF2A,maxBcopies,0);
+                scheduler.initSystem(isScaling,isF2A,maxBcopies,maxJobsStart,simulationType);
             }
 
             if (simulationType == 2) {
@@ -98,16 +106,16 @@ public class SimulationController {
                 Statistics.getInstance().setType(simulationType);
             }
 
-            //inizio run
+            //AVVIO RUN
             double stopTime = scheduler.runSimulation();
             Statistics.getInstance().outputStatistics(stopTime);
 
             //reset per la prossima run
             scheduler.resetScheduler();
             Statistics.getInstance().resetStatistics();
-            CopyEstimator.getInstance().resetCopyEstimator();
+            CopyEstimator.getInstance().hardReset();
 
-            scheduler.initRngs(initialSeed,true);
+            scheduler.initRngs(initialSeed,resetSeed);
 
             OutputFileGenerator.getInstance().flushFiles();
             //se serve
@@ -119,13 +127,19 @@ public class SimulationController {
             }else if (simulationType == 2) {
                 //lambda viene usato come numero di massimi jobs per copia di b
                 bmControl.calculate(maxJobsStart+i);
+                if (writeCopy) {
+                    bmControl.calculateCopy(maxJobsStart+i);
+                }
             }
-            //if (i == 0) {
-            //    exit(-1);
-            //}
 
-            csvTransitorio.closeFile();
-            csvTransitorio.deleteBatch();
+
+            if (simulationType != 0) {
+                csvTransitorio.closeFile();
+                csvTransitorio.deleteBatch();
+                if (writeCopy) {
+                    csvTransitorio.deleteCopy();
+                }
+            }
         }
 
         BatchResultsFileGenerator.getInstance().closeFile();

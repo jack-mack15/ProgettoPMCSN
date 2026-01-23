@@ -1,7 +1,5 @@
 package pmcsn.estimators;
 
-import static java.lang.System.out;
-
 public class CopyEstimator {
 
     private int numCopy;
@@ -23,7 +21,7 @@ public class CopyEstimator {
         lastUpdate = 0.0;
     }
 
-    public void resetCopyEstimator() {
+    public void hardReset() {
         this.numCopy = 1;
         this.startTime = 0.0;
         this.area = 0.0;
@@ -31,10 +29,17 @@ public class CopyEstimator {
         this.lastUpdate = 0.0;
     }
 
+    public void resetForBatch(int currNum, double newTime) {
+        this.numCopy = currNum;
+        this.startTime = newTime;
+        this.area = 0.0;
+        this.finishTime = 0.0;
+        this.lastUpdate = newTime;
+    }
+
     public void onCreation(double now) {
         updateAreas(now);
         numCopy++;
-        //out.println("per ora ci sono queste copie parallele "+numCopy);
     }
 
     public void onDestroy(double now) {

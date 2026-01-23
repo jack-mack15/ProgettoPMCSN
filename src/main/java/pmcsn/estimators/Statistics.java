@@ -1,6 +1,7 @@
 package pmcsn.estimators;
 
 import pmcsn.entities.Job;
+import pmcsn.events.Event;
 
 public class Statistics {
 
@@ -38,6 +39,14 @@ public class Statistics {
         } else if (type == 1) {
             //batch means
             batchMeansEstimator.updateBatchStats(node,job);
+        }
+    }
+
+    public void finalizeDroppedJob(Event event) {
+        if (type == 0) {
+            simpleRun.dropJob(event.getIdRequest());
+        } else if (type == 1) {
+            BatchMeansEstimator.getInstance().dropJob(event);
         }
     }
 
