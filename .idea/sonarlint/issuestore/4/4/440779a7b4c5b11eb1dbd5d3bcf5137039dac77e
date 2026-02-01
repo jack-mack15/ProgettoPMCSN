@@ -1,8 +1,8 @@
 
-f	java:S117P"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(ø•ë¡
-k	java:S117Q"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(ÔÒîøÿÿÿÿ
-f	java:S117`"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(×ÅÚÎ
-k	java:S117a"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(œ×®Ïûÿÿÿÿ
+f	java:S117U"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(ø•ë¡
+k	java:S117V"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(ÔÒîøÿÿÿÿ
+f	java:S117e"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(×ÅÚÎ
+k	java:S117f"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(œ×®Ïûÿÿÿÿ
 g	java:S116."RRename this field "DEFAULT" to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(ÿÓ’Ã
 g	java:S1160"RRename this field "STREAMS" to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(ÃâÁ‰
 7
@@ -15,7 +15,9 @@ java:S1170."!Make this final field static too.(ÿÓ’Ã
 java:S11700"!Make this final field static too.(ÃâÁ‰
 7
 java:S11702"!Make this final field static too.(ğò—Ó
+C
+java:S1170B"!Make this final field static too.(Àää¿ıÿÿÿÿ8¼Í¯ÌÁ3
 h
 java:S18456"RRename field "streams" to prevent any misunderstanding/clash with field "STREAMS".(¢Öƒà
 P
-java:S1117e"5Rename "j" which hides the field declared at line 50.(Ø®é–şÿÿÿÿ
+java:S1117j"5Rename "j" which hides the field declared at line 50.(Ø®é–şÿÿÿÿ

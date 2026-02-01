@@ -1,0 +1,22 @@
+
+R
+java:S4973="<Strings and Boxed types should be compared using "equals()".(ò–©¶
+W
+java:S4973x"<Strings and Boxed types should be compared using "equals()".(õÏ«ëøÿÿÿÿ
+S	java:S106"9Replace this use of System.out or System.err by a logger.(“×·ôşÿÿÿÿ
+F
+java:S1172M"+Remove this unused method parameter "node".(çœçÃşÿÿÿÿ
+N
+java:S1135§"2Complete the task associated to this TODO comment.(Ñ°¶½øÿÿÿÿ
+W	java:S125«"<This block of commented-out lines of code should be removed.(À¥£¡ùÿÿÿÿ
+n
+java:S3776Ë"RRefactor this method to reduce its Cognitive Complexity from 27 to the 15 allowed.(‰¨İÖøÿÿÿÿ
+N
+java:S1135Ê"2Complete the task associated to this TODO comment.(Ñ°¶½øÿÿÿÿ
+W	java:S125Î"<This block of commented-out lines of code should be removed.(À¥£¡ùÿÿÿÿ
+E
+java:S1128"/Remove this unused import 'pmcsn.entities.Job'.(ò‘Æİ
+J
+java:S1144¨"3Remove this unused private "selectBestNode" method.(µ“¶Ö
+M
+java:S1144Ë"1Remove this unused private "selectRRNode" method.(‰¨İÖøÿÿÿÿ

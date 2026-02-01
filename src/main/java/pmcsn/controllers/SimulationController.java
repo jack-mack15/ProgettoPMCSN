@@ -19,25 +19,25 @@ public class SimulationController {
         int maxJobsStart = 7;    //parametro C del report, numero massimo di job per copia di B
 
         //PARAMETRI DELLE RUN
-        int numRuns = 15;       //numero perfetto per lambda da 0.5 a 1.20
+        int numRuns = 9;       //numero perfetto per lambda da 0.5 a 1.20
         int batchSize = 4096;    //dimensione dei batch
         int numBatches = 200;       //numero dei barch
         int numJobs = 819200;       //numero di job massimi per la simulazione
-        double maxTime = 0.0;    //172800 per avere 48 h  //tempo massimo di simulazione (se 0.0 uso solo job massimi)
+        double maxTime = 172800.0;    //172800 per avere 48 h  //tempo massimo di simulazione (se 0.0 uso solo job massimi)
         long initialSeed = 123456789L;      //seed da cui si calcolano tutti i seed
         boolean writeCopy = true;       //indica se è necessario scrivere il file delle copie
 
         //seed 0 per transitorio (9*6 utilizzati)
         //seed 60 per ploss (solo 6 utilizzati)
         //seed 72 per esperimenti (14*6 utilizzati)
-        int firstIndexSeed = 72;        //indica l'indice nell'array degli stream.
-        double lambda = 0.5;           //tasso di arrivi da esterno
+        int firstIndexSeed = 0;        //indica l'indice nell'array degli stream.
+        double lambda = 1.2;           //tasso di arrivi da esterno
         //0 per transitorio o per grafici temporali
         //1 per batch means
         //0 per acs ma varname == "" ma occorre avere il file pronto
         //2 per le simulations di scaling
-        int simulationType = 1;
-        double samplingPeriod = 0.0;        //indica ogni quanto fare il sampling temporale (se 0.0 mai)
+        int simulationType = 0;
+        double samplingPeriod = 250.0;        //indica ogni quanto fare il sampling temporale (se 0.0 mai)
         double samplingStart = 250.0;       //indica primo evento SAMPLING
         boolean resetSeed = false;          //indica se è necessario spostarsi di indice stream o no a fine run
                                             //se true, si resettano gli stream

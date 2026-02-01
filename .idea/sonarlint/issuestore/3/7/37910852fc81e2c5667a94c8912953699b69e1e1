@@ -1,0 +1,11 @@
+
+S
+java:S4973¯"<Strings and Boxed types should be compared using "equals()".(¤—ôå
+X
+java:S4973½"<Strings and Boxed types should be compared using "equals()".(‚„ø†úÿÿÿÿ
+S	java:S106"9Replace this use of System.out or System.err by a logger.(“×·ôşÿÿÿÿ
+<
+java:S1170""!Make this final field static too.(”Ş†·ùÿÿÿÿ
+Q	java:S125x"<This block of commented-out lines of code should be removed.(½Öšï
+F
+java:S1068""+Remove this unused "epsilon" private field.(”Ş†·ùÿÿÿÿ

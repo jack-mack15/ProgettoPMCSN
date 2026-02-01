@@ -63,11 +63,16 @@ public class Rngs {
     //indica l'indice del seed iniziale della run. Ad ogni run viene aggiornato
     private int runCursor;
 
+    private final int curIncr = 6;
+
+    private long firstSeed;
+
 
 
 
 
     public Rngs (long x) {
+        firstSeed = x;
         streams = new long[STREAMS];
         seeds = new long[STREAMS];
         runCursor = 0;
@@ -130,7 +135,13 @@ public class Rngs {
         return runCursor;
     }
 
+    //se curIncr è impostato ad uno, per verifica run indipendenti, devi resettare i seed
     public void setRunCursor() {
+        if (curIncr == 1) {
+            plantSeeds(firstSeed);
+            runCursor += 1;
+            return;
+        }
         runCursor += 6;
     }
 
