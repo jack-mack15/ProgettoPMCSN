@@ -43,7 +43,7 @@ class Acs {
         double hold[]  = new double [SIZE]; /* K + 1 most recent data points */
         double cosum[] = new double [SIZE]; /* cosum[j] sums x[i] * x[i+j]   */
 
-        String fileName = "ACS.txt";
+        String fileName = "acs200.txt";
 
         for (j = 0; j < SIZE; j++)
             cosum[j] = 0.0;

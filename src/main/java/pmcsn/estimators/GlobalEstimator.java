@@ -48,7 +48,7 @@ public class GlobalEstimator {
                     responseTime = 0.1;
                 }
                 responseTimeEstimator.addData(responseTime);
-                //OutputFileGenerator.getInstance().logRecordACS(responseTime);
+                OutputFileGenerator.getInstance().logRecordACS(responseTime);
                 list.remove(j);
                 return;
             }
@@ -56,11 +56,11 @@ public class GlobalEstimator {
     }
 
     public void onRemove(long id){
-        for (Job job: list) {
+        /*for (Job job: list) {
             if (id == job.getId()) {
                 list.remove(job);
             }
-        }
+        }*/
     }
     public void resetGlobalEstimator() {
         responseTimeEstimator = new Welford();

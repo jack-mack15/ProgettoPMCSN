@@ -57,7 +57,7 @@ public class Rngs {
     private  long[] seeds;
 
     //cursor degli stream
-    private int  stream = 0;
+    private int curStr = 0;
     int initialize = 0;
 
     //indica l'indice del seed iniziale della run. Ad ogni run viene aggiornato
@@ -86,12 +86,12 @@ public class Rngs {
         long R = m % a;
         long t;
 
-        t = a * (streams[stream] % Q) - R * (streams[stream] / Q);
+        t = a * (streams[curStr] % Q) - R * (streams[curStr] / Q);
         if (t > 0)
-            streams[stream] = t;
+            streams[curStr] = t;
         else
-            streams[stream] = t + m;
-        return ((double) streams[stream] / m);
+            streams[curStr] = t + m;
+        return ((double) streams[curStr] / m);
     }
 
     //funzione che setta tutti i seed degli stream a partire dal valore specificato x
@@ -154,7 +154,7 @@ public class Rngs {
     //utilizzerà lo stream selezionato con selectStream().
     public void selectStream(String node) {
         int index = getIndex(node);
-        stream = (index + runCursor) % STREAMS;
+        curStr = (index + runCursor) % STREAMS;
     }
 
     public long[] getSeeds() {

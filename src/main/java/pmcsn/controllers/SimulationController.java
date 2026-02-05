@@ -6,6 +6,7 @@ import pmcsn.estimators.Statistics;
 import pmcsn.files.BatchResultsFileGenerator;
 import pmcsn.files.OutputFileGenerator;
 
+import static java.lang.System.exit;
 import static java.lang.System.out;
 
 public class SimulationController {
@@ -15,33 +16,33 @@ public class SimulationController {
         //PARAMETRI DEL SISTEMA
         boolean isScaling = false;       //indica se il nodo B esegue scaling oppure no
         boolean isF2A = true;           // indica quali tempi medi di servizio P e A devono usare
-        int maxBcopies = Integer.MAX_VALUE; //2 per fase di verifica  //indica quante copie massime di b ci possono essere (sempre max)
-        int maxJobsStart = 7;    //parametro C del report, numero massimo di job per copia di B
+        int maxBcopies = 2;//Integer.MAX_VALUE; //2 per fase di verifica  //indica quante copie massime di b ci possono essere (sempre max)
+        int maxJobsStart = 3;    //parametro C del report, numero massimo di job per copia di B
 
         //PARAMETRI DELLE RUN
-        int numRuns = 9;       //numero perfetto per lambda da 0.5 a 1.20
+        int numRuns = 1;       //numero perfetto per lambda da 0.5 a 1.20
         int batchSize = 4096;    //dimensione dei batch
         int numBatches = 200;       //numero dei barch
-        int numJobs = 819200;       //numero di job massimi per la simulazione
-        double maxTime = 172800.0;    //172800 per avere 48 h  //tempo massimo di simulazione (se 0.0 uso solo job massimi)
+        int numJobs = 819200; //819200;       //numero di job massimi per la simulazione
+        double maxTime = 0.0;//172800.0;    //172800 per avere 48 h  //tempo massimo di simulazione (se 0.0 uso solo job massimi)
         long initialSeed = 123456789L;      //seed da cui si calcolano tutti i seed
         boolean writeCopy = true;       //indica se è necessario scrivere il file delle copie
 
         //seed 0 per transitorio (9*6 utilizzati)
         //seed 60 per ploss (solo 6 utilizzati)
         //seed 72 per esperimenti (14*6 utilizzati)
-        int firstIndexSeed = 0;        //indica l'indice nell'array degli stream.
+        int firstIndexSeed = 60;        //indica l'indice nell'array degli stream.
         double lambda = 1.2;           //tasso di arrivi da esterno
         //0 per transitorio o per grafici temporali
         //1 per batch means
         //0 per acs ma varname == "" ma occorre avere il file pronto
         //2 per le simulations di scaling
         int simulationType = 0;
-        double samplingPeriod = 250.0;        //indica ogni quanto fare il sampling temporale (se 0.0 mai)
+        double samplingPeriod = 0.0;        //indica ogni quanto fare il sampling temporale (se 0.0 mai)
         double samplingStart = 250.0;       //indica primo evento SAMPLING
         boolean resetSeed = false;          //indica se è necessario spostarsi di indice stream o no a fine run
                                             //se true, si resettano gli stream
-        boolean discard = false;             //indica se scartare la prima run se problemi file
+        boolean discard = true;             //indica se scartare la prima run se problemi file
 
 
         //se serve il generatore del file batch finale

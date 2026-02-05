@@ -10,7 +10,7 @@ import java.util.TreeMap;
 public class BatchMeansCalculator {
 
     private static final double T_SCORE = 1.97196;
-    private static final double SQRT_N = 14.142135; // radice quadrata di 200
+    private static final double SQRT_N = 14.142135; 
     private static final String delimiter = ",";
     private static String inputCsvPath = "Batch.csv"; //file contenente i risultati dei singoli batch
     private static String outputCsvPath = "BatchResults.csv"; //file in cui sono scritti i risultati delle runs.

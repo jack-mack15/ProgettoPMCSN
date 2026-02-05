@@ -118,7 +118,7 @@ public class NodeB extends AbstractNode{
     }
 
     private void scheduleDestroy() {
-        Event destroy = new Event(scheduler.getClock()+0.0,EventType.DESTROY,name,-1,-1);
+        Event destroy = new Event(scheduler.getClock()+100.0,EventType.DESTROY,name,-1,-1);
         //out.println(scheduler.getClock()+"    "+destroy.getTime()+"  "+destroy.getType());
         scheduler.addEvent(destroy);
         //out.println(name+" ha schedulato ad itante "+ scheduler.getClock()+10000.0);
